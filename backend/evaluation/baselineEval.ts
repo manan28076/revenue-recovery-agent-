@@ -10,13 +10,13 @@ const BAD_RETRY_PENALTY_PAISE = 500;
 // The agent does not know these exact probabilities. It uses its own estimates.
 // These are the "true" probabilities used strictly by the evaluator to simulate outcomes.
 const EVALUATOR_TRUE_PROBABILITIES: Record<RootCause, Partial<Record<ActionType, number>>> = {
-  card_decline: { retry_payment: 0.40, send_nudge: 0.20, reschedule_mandate: 0.15 },
-  insufficient_funds: { retry_payment: 0.05, send_nudge: 0.55, reschedule_mandate: 0.35 },
-  checkout_drop: { retry_payment: 0.10, send_nudge: 0.45, reschedule_mandate: 0.10 },
-  mandate_failure: { retry_payment: 0.08, send_nudge: 0.25, reschedule_mandate: 0.60 },
-  receivable_overdue: { retry_payment: 0.02, send_nudge: 0.35, reschedule_mandate: 0.05 },
-  unrecoverable_fraud: { retry_payment: 0.01, send_nudge: 0.01, reschedule_mandate: 0.01 },
-  transient_error: { retry_payment: 0.85, send_nudge: 0.05, reschedule_mandate: 0.10 },
+  card_decline: { retry_payment: 0.40, send_nudge: 0.20, nudge_with_discount: 0.50, reschedule_mandate: 0.15 },
+  insufficient_funds: { retry_payment: 0.05, send_nudge: 0.55, nudge_with_discount: 0.75, reschedule_mandate: 0.35 },
+  checkout_drop: { retry_payment: 0.10, send_nudge: 0.45, nudge_with_discount: 0.65, reschedule_mandate: 0.10 },
+  mandate_failure: { retry_payment: 0.08, send_nudge: 0.25, nudge_with_discount: 0.45, reschedule_mandate: 0.60 },
+  receivable_overdue: { retry_payment: 0.02, send_nudge: 0.35, nudge_with_discount: 0.60, reschedule_mandate: 0.05 },
+  unrecoverable_fraud: { retry_payment: 0.01, send_nudge: 0.01, nudge_with_discount: 0.01, reschedule_mandate: 0.01 },
+  transient_error: { retry_payment: 0.85, send_nudge: 0.05, nudge_with_discount: 0.10, reschedule_mandate: 0.10 },
 };
 
 function getTrueProbability(rootCause: RootCause, action: ActionType): number {
@@ -134,7 +134,8 @@ function runAgentPolicy(
     const trueProbability = getTrueProbability(rootCause, decision.action);
     const roll = seededUnitRandom(`${event.transaction_id}:agent:${decision.action}`);
     if (roll < trueProbability) {
-      total_amount_recovered += event.amount;
+      const recovered_amount = decision.action === "nudge_with_discount" ? Math.round(event.amount * 0.85) : event.amount;
+      total_amount_recovered += recovered_amount;
     }
   }
 

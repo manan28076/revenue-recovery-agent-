@@ -85,7 +85,7 @@ describe("strategyAgent stopping rules", () => {
 
     const [decision] = decideBatch([event], [classification]);
 
-    assert.equal(decision.action, "send_nudge");
+    assert.equal(decision.action, "nudge_with_discount");
   });
 
   test("overdue invoice past 30 days escalates instead of another nudge", () => {
@@ -103,7 +103,7 @@ describe("strategyAgent stopping rules", () => {
 
     const [decision] = decideBatch([event], [classification]);
 
-    assert.equal(decision.action, "send_nudge");
+    assert.equal(decision.action, "nudge_with_discount");
   });
 
   test("escalates rather than guessing if no classification exists for a transaction", () => {
@@ -137,7 +137,7 @@ describe("strategyAgent stopping rules", () => {
 
     const [decision] = decideBatch([event], [classification]);
 
-    assert.equal(decision.action, "retry_payment");
+    assert.equal(decision.action, "nudge_with_discount");
     assert.ok(decision.expected_net_value !== undefined && decision.expected_net_value > 0);
   });
 

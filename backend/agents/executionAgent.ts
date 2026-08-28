@@ -21,7 +21,7 @@ async function executeAction(
       transaction_id: event.transaction_id,
       action_taken: decision.action,
       outcome: existingLink.outcome as ExecutionOutcome["outcome"],
-      amount_recovered: existingLink.outcome === "recovered" ? event.amount : 0,
+      amount_recovered: existingLink.outcome === "recovered" ? (decision.action === "nudge_with_discount" ? Math.round(event.amount * 0.85) : event.amount) : 0,
       predicted_recovery_amount: 0,
       timestamp: new Date().toISOString(),
       recovery_source: (existingLink.recoverySource as ExecutionOutcome["recovery_source"]) ?? undefined,
@@ -39,6 +39,7 @@ async function executeAction(
   const needsLink =
     decision.action === "retry_payment" ||
     decision.action === "send_nudge" ||
+    decision.action === "nudge_with_discount" ||
     decision.action === "reschedule_mandate";
 
   if (needsLink && !recovery_link_id) {
@@ -66,8 +67,7 @@ async function executeAction(
     outcome = "escalated";
   } else if (needsLink) {
     outcome = "pending";
-    const probability = decision.recovery_probability ?? 0;
-    predicted_recovery_amount = Math.round(event.amount * probability);
+    predicted_recovery_amount = decision.expected_recovery_value ?? 0;
   } else if (decision.action === "escalate_human") {
     outcome = "escalated";
   } else {

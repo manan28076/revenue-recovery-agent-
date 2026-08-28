@@ -8,7 +8,10 @@ function syntheticContact(customer_id: string): { email: string; contact: string
   };
 }
 
-function amountInPaise(event: PaymentEvent): number {
+function amountInPaise(event: PaymentEvent, actionTaken?: string): number {
+  if (actionTaken === "nudge_with_discount") {
+    return Math.round(event.amount * 0.85);
+  }
   // our dataset already stores amounts in paise
   return Math.round(event.amount);
 }
@@ -37,15 +40,17 @@ export async function createRecoveryLink(
     expireBy = nowInSeconds + (1 * 60 * 60); // 1 hour
   } else if (actionTaken === "reschedule_mandate") {
     expireBy = nowInSeconds + (3 * 24 * 60 * 60); // 3 days
-  } else if (actionTaken === "send_nudge") {
+  } else if (actionTaken === "send_nudge" || actionTaken === "nudge_with_discount") {
     expireBy = nowInSeconds + (7 * 24 * 60 * 60); // 7 days
   }
 
   try {
     const link = await razorpay.paymentLink.create({
-      amount: amountInPaise(event),
+      amount: amountInPaise(event, actionTaken),
       currency: event.currency,
-      description: `Revenue recovery, ${reasonLabel} (${event.transaction_id})`,
+      description: actionTaken === "nudge_with_discount" 
+          ? `Revenue recovery, ${reasonLabel} (15% discount applied) (${event.transaction_id})`
+          : `Revenue recovery, ${reasonLabel} (${event.transaction_id})`,
       expire_by: expireBy,
       customer: {
         name: event.customer_id,

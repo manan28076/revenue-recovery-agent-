@@ -19,6 +19,7 @@ export type RootCause =
 export type ActionType =
   | "retry_payment"
   | "send_nudge"
+  | "nudge_with_discount"
   | "reschedule_mandate"
   | "escalate_human"
   | "no_action";

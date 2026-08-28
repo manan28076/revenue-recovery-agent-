@@ -15,6 +15,7 @@ const ALLOWED_ROOT_CAUSES: RootCause[] = [
 const ALLOWED_ACTIONS: ActionType[] = [
   "retry_payment",
   "send_nudge",
+  "nudge_with_discount",
   "reschedule_mandate",
   "escalate_human",
   "no_action",

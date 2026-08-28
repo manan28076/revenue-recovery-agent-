@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PaymentEvent {
+  id             String   @id @default(cuid())
+  transactionId  String   @unique @map("transaction_id")
+  amount         Int
+  currency       String
+  status         String
+  failureCode    String   @map("failure_code")
+  paymentMethod  String   @map("payment_method")
+  customerId     String   @map("customer_id")
+  attemptCount   Int      @map("attempt_count")
+  checkoutStage  String   @map("checkout_stage")
+  isSubscription Boolean  @map("is_subscription")
+  daysOverdue    Int?     @map("days_overdue")
+  isRealRazorpayObject Boolean @default(false) @map("is_real_razorpay_object")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  auditLog AuditLogEntry?
+
+  @@map("payment_events")
+}
+
+model AuditLogEntry {
+  id                  String   @id @default(cuid())
+  transactionId       String   @unique @map("transaction_id")
+  rootCause           String   @map("root_cause")
+  // AI certainty in the root-cause diagnosis (0-1). NOT a recovery-odds figure.
+  diagnosisConfidence Float    @map("diagnosis_confidence")
+  // Estimated likelihood the chosen action recovers the money (0-1).
+  recoveryProbability Float    @map("recovery_probability")
+  classifierReasoning String   @map("classifier_reasoning")
+  actionTaken         String   @map("action_taken")
+  strategyReasoning   String   @map("strategy_reasoning")
+  outcome             String
+  amountRecovered     Int      @map("amount_recovered")
+  // Probability-weighted estimate attached to a "pending" case. Always 0
+  // once the transaction resolves. Never counted as confirmed money.
+  predictedRecoveryAmount Int  @default(0) @map("predicted_recovery_amount")
+  // Only set when outcome = "recovered": "webhook_confirmed" | "demo_confirmed" | "human_override".
+  // A transaction can never be "recovered" without one of these three real
+  // confirmation paths - there is no "simulated" recovered state.
+  recoverySource        String?  @map("recovery_source")
+  expectedRecoveryValue Int?     @map("expected_recovery_value")
+  interventionCost      Int?     @map("intervention_cost")
+  expectedNetValue      Int?     @map("expected_net_value")
+  recoveryLinkId       String?  @unique @map("recovery_link_id")
+  recoveryLinkUrl       String?  @map("recovery_link_url")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  paymentEvent PaymentEvent @relation(fields: [transactionId], references: [transactionId])
+
+  @@map("audit_log_entries")
+}
+
+// razorpay can deliver the same webhook event more than once (their docs say
+// so explicitly - "at-least-once" delivery). we key on their event id so a
+// duplicate delivery just no-ops instead of double-counting a recovery.
+// Every human override is a full audit record, not just a silent state
+// mutation - a merchant asserting "this was collected" changes a real
+// financial number, so who did it, why, and what changed must be durable
+// and queryable, not just overwritten in place on AuditLogEntry.
+model OverrideAudit {
+  id               String   @id @default(cuid())
+  transactionId    String   @map("transaction_id")
+  actor            String   @default("merchant") // no real auth system in this build, but the field exists for when there is one
+  overrideAction   String   @map("override_action")
+  reason           String
+  previousOutcome  String   @map("previous_outcome")
+  newOutcome       String   @map("new_outcome")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([transactionId])
+  @@map("override_audit")
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  razorpayEventId String   @unique @map("razorpay_event_id")
+  eventType       String   @map("event_type")
+  payload         Json
+  processedAt     DateTime @default(now()) @map("processed_at")
+
+  @@map("webhook_events")
+}

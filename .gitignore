@@ -1,0 +1,12 @@
+node_modules/
+dist/
+data/*.json
+.env
+.env.local
+
+# prisma generates a client into node_modules by default with this setup,
+# nothing to ignore separately here, but keeping this in case that changes
+prisma/generated/
+
+*.log
+.DS_Store

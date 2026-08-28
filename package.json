@@ -1,0 +1,43 @@
+{
+  "name": "revenue-recovery-agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate-data": "ts-node backend/scripts/generateDataset.ts 75",
+    "seed-real-data": "ts-node backend/scripts/seedRealData.ts 20 35",
+    "db:up": "docker compose up -d",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:load": "ts-node backend/scripts/loadIntoDb.ts",
+    "db:reset": "ts-node backend/scripts/resetDb.ts",
+    "api": "ts-node backend/server.ts",
+    "test": "node --import tsx --test backend/agents/__tests__/*.test.ts",
+    "demo:failure": "ts-node backend/scripts/runFailureDemo.ts",
+    "classify": "ts-node backend/scripts/runClassifier.ts",
+    "run-pipeline": "ts-node backend/scripts/runPipeline.ts",
+    "eval:baseline": "ts-node backend/scripts/runBaselineEval.ts",
+    "eval:confidence-outcome": "ts-node backend/scripts/evalCalibration.ts",
+    "demo:pipeline": "npm run classify && npm run run-pipeline && npm run eval:baseline && npm run db:load",
+    "demo:serve": "concurrently -n api,dashboard -c blue,magenta \"npm run api\" \"npm --prefix dashboard run dev\"",
+    "demo": "npm run seed-real-data && npm run demo:pipeline && npm run demo:serve",
+    "demo:offline": "npm run generate-data && npm run demo:pipeline && npm run demo:serve"
+  },
+  "dependencies": {
+    "@google/genai": "^2.18.0",
+    "@prisma/client": "6.19.3",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "prisma": "6.19.3",
+    "razorpay": "^2.9.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.14.0",
+    "concurrently": "10.0.5",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.12",
+    "typescript": "^5.5.0"
+  }
+}

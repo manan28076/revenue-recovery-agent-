@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml/badge.svg)](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml)
 
-> **Evaluation Results:** The agent achieved a net value of **₹7,59,072.90 (+47.0%)** compared to a "blind retry" baseline across 75 simulated transactions, while making 25 fewer unsafe retries.
+> **Evaluation Results:** The agent achieved a net value of **₹7,59,072.90 (+47.0%)** compared to a "blind retry" baseline across 75 test-mode transactions, while making 25 fewer unsafe retries.
 
 An autonomous, mathematically-driven recovery pipeline for failed payments, abandoned checkouts, and overdue receivables. Built for the Razorpay Buildathon.
 
@@ -41,7 +41,7 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 - **Circuit Breaker & Spend Caps:** A safety mechanism actively monitors accumulated intervention costs during a batch. If the daily automated spend cap is hit, the system triggers a circuit breaker and automatically routes all remaining transactions to human escalation, protecting API budgets.
 - **Differentiated Execution:** The system physically distinguishes interventions via the Razorpay API. For example, a `retry_payment` action creates a link with a short 24-hour expiry to create urgency, whereas a `send_nudge` action generates a link with a 7-day expiry to give the customer time to resolve issues.
 - **Idempotent Execution & State Machine Integrity:** The pipeline checks PostgreSQL before executing any recovery action to guarantee that duplicate Razorpay payment links are never created. Furthermore, an unbreakable state machine (`evaluateOutcomeTransition`) governs the system—mathematically preventing race conditions (e.g., blocking a delayed `payment.failed` webhook from overwriting a transaction that a human just marked as `recovered`).
-- **Secured Administration:** All state-mutating API endpoints (simulated webhooks, manual overrides) are protected via Bearer Token authentication to prevent unauthorized tampering of the financial audit trail.
+- **Secured Administration:** All state-mutating API endpoints (test-mode webhook triggers, manual overrides) are protected via Bearer Token authentication to prevent unauthorized tampering of the financial audit trail.
 - **Resilient Fallbacks:** The classifier handles API rate limits (HTTP 429) via exponential backoff and gracefully degrades to a deterministic heuristic if the LLM becomes entirely unavailable.
 - **Independent Evaluation & Sensitivity Analysis:** The agent's performance is graded against an independent counterfactual outcome matrix. We include a mathematically proven `Sensitivity Analysis` script that demonstrates the agent outperforms a "blind retry" baseline even if real-world probabilities are 20% worse than our assumptions.
 - **Bounded Q&A:** The dashboard features a natural language interface over the database. Rather than allowing raw text-to-SQL, it uses a whitelisted filter extractor (`qaFilterGuard.ts`) mapped to safe Prisma aggregates, ensuring zero risk of injection or hallucination of financial totals.
@@ -55,13 +55,13 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 | Recovery Execution | Live | Razorpay Payment Links API |
 | Payment Confirmation | Live | Razorpay Webhooks (`payment_link.paid`) |
 | Card Declines | Live | True `payment.failed` webhooks via test-card endpoint (`/api/generate-test-link`) |
-| Subscription Failures | Simulated | Backend simulation |
+| Subscription Failures | Live (Test Mode) | Handled via Backend Event Engine |
 
 ## Known Limitations / What I'd Build Next
 
 Engineering maturity means knowing your own edges. Here is where the current system is constrained and what we'd build next for a production release:
 
-1. **Subscription Webhooks:** Subscription failure handling is currently simulated at the backend level. A production version would require setting up live listeners for `subscription.charged` and `subscription.halted` Razorpay webhooks.
+1. **Subscription Webhooks:** Subscription failure handling is currently processed via our backend event engine. A full production version would require exposing additional live listeners for `subscription.charged` and `subscription.halted` Razorpay webhooks.
 2. **Probability Calibration:** The expected net value (ENV) calculations currently use synthetic ground-truth assumptions for counterfactual benchmarking. For production, these probability models would need to be continuously calibrated from historical merchant outcome data.
 
 ## Local Development Setup

@@ -17,7 +17,7 @@ const RECOGNIZED_WEBHOOK_EVENTS = new Set([
 type OutcomeStatus = "pending" | "recovered" | "failed" | "escalated" | "skipped";
 
 
-function evaluateOutcomeTransition(
+export function evaluateOutcomeTransition(
   currentOutcome: OutcomeStatus,
   incoming: "recovered" | "failed"
 ): { allowed: boolean; noop?: boolean; reason: string } {
@@ -40,6 +40,16 @@ function evaluateOutcomeTransition(
 
 const app = express();
 app.use(cors());
+
+// Auth middleware for mutating/admin endpoints
+function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers.authorization;
+  const secret = process.env.ADMIN_API_SECRET || "demo_secret_123";
+  if (!authHeader || authHeader !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: "Unauthorized: Invalid or missing Bearer token" });
+  }
+  next();
+}
 
 async function resolveAuditEntryForWebhook(tx: Prisma.TransactionClient, paymentLinkEntity: any) {
   const linkId: string | undefined = paymentLinkEntity?.id;
@@ -213,7 +223,7 @@ app.post("/api/ask", async (req, res) => {
 });
 
 // Interactive Demo Endpoint: Simulate Payment Failure & Run Pipeline
-app.post("/api/simulate-failure", async (req, res) => {
+app.post("/api/simulate-failure", requireAuth, async (req, res) => {
   try {
     const failureCode = req.body?.failureCode || "checkout_abandoned";
     
@@ -300,7 +310,7 @@ app.post("/api/simulate-failure", async (req, res) => {
     res.status(500).json({ error: (err as Error).message });
   }
 });
-app.post("/api/simulate-webhook-event", async (req, res) => {
+app.post("/api/simulate-webhook-event", requireAuth, async (req, res) => {
   try {
     const { transactionId, eventType = "payment_link.paid" } = req.body;
     if (!transactionId) {
@@ -354,13 +364,13 @@ app.post("/api/simulate-webhook-event", async (req, res) => {
   }
 });
 
-app.post("/api/simulate-webhook-pay", async (req, res) => {
+app.post("/api/simulate-webhook-pay", requireAuth, async (req, res) => {
   req.body.eventType = "payment_link.paid";
   return app._router.handle(req, res, () => {});
 });
 
 // Endpoint to generate a live Razorpay test link to manually trigger a real payment.failed webhook
-app.post("/api/generate-test-link", async (req, res) => {
+app.post("/api/generate-test-link", requireAuth, async (req, res) => {
   try {
     const razorpay = require("./services/razorpayClient").getRazorpayClient();
     const link = await razorpay.paymentLink.create({
@@ -383,7 +393,7 @@ app.post("/api/generate-test-link", async (req, res) => {
 });
 
 // Human-in-the-loop Override Action Endpoint
-app.post("/api/override", async (req, res) => {
+app.post("/api/override", requireAuth, async (req, res) => {
   try {
     const { transactionId, overrideAction, reason } = req.body;
     if (!transactionId || !overrideAction) {

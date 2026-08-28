@@ -44,7 +44,10 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
     try {
       const res = await fetch(`${API_BASE}/api/simulate-webhook-event`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+        },
         body: JSON.stringify({ transactionId: row.transactionId, eventType }),
       });
       if (!res.ok) {
@@ -71,7 +74,10 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
     try {
       const res = await fetch(`${API_BASE}/api/override`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+        },
         body: JSON.stringify({ transactionId: row.transactionId, overrideAction, reason: overrideReason.trim() }),
       });
       if (!res.ok) {

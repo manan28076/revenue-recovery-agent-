@@ -23,8 +23,11 @@ export function DemoSimulator({ onRefresh, onComplete }: DemoSimulatorProps) {
     try {
       const res = await fetch(`${API_BASE}/api/simulate-failure`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ failureCode: failureType }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+        },
+        body: JSON.stringify({ failureCode: failureType, amount: customAmount }),
       });
       if (!res.ok) {
         const text = await res.text();

@@ -359,6 +359,29 @@ app.post("/api/simulate-webhook-pay", async (req, res) => {
   return app._router.handle(req, res, () => {});
 });
 
+// Endpoint to generate a live Razorpay test link to manually trigger a real payment.failed webhook
+app.post("/api/generate-test-link", async (req, res) => {
+  try {
+    const razorpay = require("./services/razorpayClient").getRazorpayClient();
+    const link = await razorpay.paymentLink.create({
+      amount: 10000, // ₹100
+      currency: "INR",
+      description: "Live Webhook Test Link",
+      customer: {
+        name: "Test Customer",
+        email: "test@example.com",
+        contact: "9999999999",
+      },
+      notify: { sms: false, email: false },
+      reminder_enable: false,
+    });
+    res.json({ success: true, linkUrl: link.short_url, linkId: link.id });
+  } catch (err) {
+    console.error("Failed to create test link:", err);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 // Human-in-the-loop Override Action Endpoint
 app.post("/api/override", async (req, res) => {
   try {

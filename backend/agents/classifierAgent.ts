@@ -230,10 +230,20 @@ export async function classifyEvent(
       throw new Error("Simulated Gemini failure");
     }
 
+    const startTime = performance.now();
     const result = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `${SYSTEM_PROMPT}\n\n${buildEventPrompt(event)}`,
     });
+    const endTime = performance.now();
+    const latencyMs = Math.round(endTime - startTime);
+    
+    // Gemini 2.5 Flash pricing is roughly $0.075 per 1M input tokens and $0.30 per 1M output tokens.
+    // For a blended average, ~$0.15 per 1M tokens ($0.00000015 per token)
+    const tokens = result.usageMetadata?.totalTokenCount ?? 0;
+    const costUsd = (tokens * 0.00000015).toFixed(5);
+    const telemetryString = `[Telemetry: ${latencyMs}ms | ${tokens} tokens | ~$${costUsd}]`;
+
     const text = (result.text || "").trim();
     const cleaned = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
@@ -252,7 +262,7 @@ export async function classifyEvent(
       transaction_id: event.transaction_id,
       root_cause: parsed.root_cause,
       diagnosis_confidence: calibratedConfidence,
-      reasoning: String(parsed.reasoning || "").slice(0, 300),
+      reasoning: `${String(parsed.reasoning || "").slice(0, 300)} ${telemetryString}`,
       evidence: String(parsed.evidence || ""),
       alternative_explanation: String(parsed.alternative_explanation || ""),
     };

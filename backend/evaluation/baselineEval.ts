@@ -19,8 +19,14 @@ const EVALUATOR_TRUE_PROBABILITIES: Record<RootCause, Partial<Record<ActionType,
   transient_error: { retry_payment: 0.85, send_nudge: 0.05, nudge_with_discount: 0.10, reschedule_mandate: 0.10 },
 };
 
+export let SENSITIVITY_SHIFT = 0;
+export function setSensitivityShift(shift: number) {
+  SENSITIVITY_SHIFT = shift;
+}
+
 function getTrueProbability(rootCause: RootCause, action: ActionType): number {
-  return EVALUATOR_TRUE_PROBABILITIES[rootCause]?.[action] ?? 0.1;
+  const base = EVALUATOR_TRUE_PROBABILITIES[rootCause]?.[action] ?? 0.1;
+  return Math.max(0, Math.min(1, base + SENSITIVITY_SHIFT));
 }
 
 export const BASELINE_EVAL_DISCLAIMER =

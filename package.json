@@ -16,6 +16,7 @@
     "classify": "ts-node backend/scripts/runClassifier.ts",
     "run-pipeline": "ts-node backend/scripts/runPipeline.ts",
     "eval:baseline": "ts-node backend/scripts/runBaselineEval.ts",
+    "eval:sensitivity": "ts-node backend/scripts/runSensitivityAnalysis.ts",
     "eval:confidence-outcome": "ts-node backend/scripts/evalCalibration.ts",
     "demo:pipeline": "npm run classify && npm run run-pipeline && npm run eval:baseline && npm run db:load",
     "demo:serve": "concurrently -n api,dashboard -c blue,magenta \"npm run api\" \"npm --prefix dashboard run dev\"",

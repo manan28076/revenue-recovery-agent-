@@ -124,7 +124,10 @@ describe("strategyAgent stopping rules", () => {
     const [decision] = decideBatch([event], [classification]);
 
     assert.equal(decision.action, "no_action");
-    assert.match(decision.reasoning.toLowerCase(), /economic threshold/);
+    assert.match(
+      decision.reasoning.toLowerCase(),
+      /no intervention yielded a positive expected net value/
+    );
     assert.ok(decision.expected_net_value !== undefined && decision.expected_net_value <= 0);
   });
 

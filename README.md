@@ -1,6 +1,6 @@
 # Revenue Recovery Agent
 
-[![CI](https://github.com/yourusername/revenue-recovery-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/revenue-recovery-agent/actions/workflows/ci.yml)
+[![CI](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml/badge.svg)](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml)
 
 > **Evaluation Results:** The agent achieved a net value of **₹7,20,185.12 (+39.5%)** compared to a "blind retry" baseline across 75 simulated transactions, while making 25 fewer unsafe retries.
 

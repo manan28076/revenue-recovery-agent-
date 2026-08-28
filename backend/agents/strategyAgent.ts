@@ -12,7 +12,7 @@ function applyStoppingRules(
   if (root_cause === "unrecoverable_fraud") return "escalate_human";
   if (event.attempt_count >= MAX_RETRIES) return "escalate_human";
 
-  return null; 
+  return null;
 }
 
 
@@ -50,7 +50,7 @@ function decideAction(
   }
 
   let bestAction: ActionType = "no_action";
-  let maxNetValue = 0;
+  let maxNetValue = -Infinity;
   let bestProbability = 0;
   let bestInterventionCost = 0;
   let bestExpectedRecovery = 0;
@@ -61,6 +61,9 @@ function decideAction(
     const intervention_cost = estimateInterventionCost(action);
     const expected_net_value = expected_recovery_value - intervention_cost;
 
+    // Track the best candidate regardless of sign, so that even when nothing
+    // clears the bar to act, the audit trail reflects the real (possibly
+    // negative) numbers behind that decision instead of a false zero.
     if (expected_net_value > maxNetValue) {
       maxNetValue = expected_net_value;
       bestAction = action;
@@ -70,11 +73,15 @@ function decideAction(
     }
   }
 
-  if (bestAction === "no_action" || maxNetValue <= 0) {
+  if (maxNetValue <= 0) {
     return {
       transaction_id: event.transaction_id,
       action: "no_action",
       reasoning: `No intervention yielded a positive expected net value. Logging as unrecoverable to avoid wasting resources.`,
+      recovery_probability: bestProbability,
+      expected_recovery_value: bestExpectedRecovery,
+      intervention_cost: bestInterventionCost,
+      expected_net_value: maxNetValue,
     };
   }
 
@@ -107,19 +114,19 @@ export function decideBatch(
       };
     }
     const decision = decideAction(event, classification);
-    
+
     if (decision.intervention_cost && accumulatedSpend + decision.intervention_cost > MAX_DAILY_INTERVENTION_SPEND) {
-        return {
-          transaction_id: event.transaction_id,
-          action: "escalate_human",
-          reasoning: `Circuit breaker triggered: Daily intervention spend cap reached. Escalating rather than auto-acting.`,
-        };
+      return {
+        transaction_id: event.transaction_id,
+        action: "escalate_human",
+        reasoning: `Circuit breaker triggered: Daily intervention spend cap reached. Escalating rather than auto-acting.`,
+      };
     }
-    
+
     if (decision.intervention_cost) {
       accumulatedSpend += decision.intervention_cost;
     }
-    
+
     return decision;
   });
 }

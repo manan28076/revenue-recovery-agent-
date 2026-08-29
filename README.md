@@ -86,7 +86,7 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 
 Engineering maturity means knowing your own edges. Here is where the current system is constrained and what we'd build next for a production release:
 
-1. **Subscription Webhooks:** Subscription failure handling is currently processed via our backend event engine. A full production version would require exposing additional live listeners for `subscription.charged` and `subscription.halted` Razorpay webhooks.
+1. **Subscription Webhooks:** Subscription failure handling is currently processed via our backend event engine. A full production version would require exposing additional live listeners for `subscription.charged` and `subscription.halted` Razorpay webhooks. You can run `npm run demo:subscription` to verify that a subscription failure properly navigates the core pipeline autonomously.
 2. **Probability Calibration:** The expected net value (ENV) calculations currently use synthetic ground-truth assumptions for counterfactual benchmarking. For production, these probability models would need to be continuously calibrated from historical merchant outcome data.
 
 ## Local Development Setup

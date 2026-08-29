@@ -11,7 +11,7 @@
     "db:load": "ts-node backend/scripts/loadIntoDb.ts",
     "db:reset": "ts-node backend/scripts/resetDb.ts",
     "api": "ts-node backend/server.ts",
-    "test": "node --import tsx --test backend/agents/__tests__/*.test.ts",
+    "test": "node --import tsx --test backend/agents/__tests__/*.test.ts backend/services/__tests__/*.test.ts",
     "demo:failure": "ts-node backend/scripts/runFailureDemo.ts",
     "classify": "ts-node backend/scripts/runClassifier.ts",
     "run-pipeline": "ts-node backend/scripts/runPipeline.ts",

@@ -8,7 +8,7 @@ function syntheticContact(customer_id: string): { email: string; contact: string
   };
 }
 
-function amountInPaise(event: PaymentEvent, actionTaken?: string): number {
+export function amountInPaise(event: PaymentEvent, actionTaken?: string): number {
   if (actionTaken === "nudge_with_discount") {
     return Math.round(event.amount * 0.85);
   }

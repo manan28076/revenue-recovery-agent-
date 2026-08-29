@@ -39,12 +39,20 @@ export function evaluateOutcomeTransition(
 }
 
 const app = express();
+// DEMO ONLY: Unrestricted CORS is enabled for hackathon demo purposes.
+// In production, this would be locked down to specific trusted origins (e.g., the exact frontend domain).
 app.use(cors());
 
 // Auth middleware for mutating/admin endpoints
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
-  const secret = process.env.ADMIN_API_SECRET || "demo_secret_123";
+  const secret = process.env.ADMIN_API_SECRET;
+  
+  if (!secret) {
+    console.error("ADMIN_API_SECRET not set in environment - refusing to authenticate request");
+    return res.status(500).json({ error: "Server authentication is not configured." });
+  }
+
   if (!authHeader || authHeader !== `Bearer ${secret}`) {
     return res.status(401).json({ error: "Unauthorized: Invalid or missing Bearer token" });
   }

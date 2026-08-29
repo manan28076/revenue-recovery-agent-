@@ -46,7 +46,7 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET}`
         },
         body: JSON.stringify({ transactionId: row.transactionId, eventType }),
       });
@@ -76,7 +76,7 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET}`
         },
         body: JSON.stringify({ transactionId: row.transactionId, overrideAction, reason: overrideReason.trim() }),
       });

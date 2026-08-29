@@ -5,7 +5,7 @@ import { decideBatch } from "./strategyAgent";
 import { createRecoveryLink } from "../services/recoveryLinkService";
 import { prisma } from "../db/prismaClient";
 
-async function executeAction(
+export async function executeAction(
   event: PaymentEvent,
   decision: StrategyDecision,
   existingLink?: {

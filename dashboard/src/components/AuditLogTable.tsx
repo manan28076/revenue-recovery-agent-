@@ -210,6 +210,13 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
                 ✖ Mark Failed
               </button>
               <button
+                style={{ ...btnStyle, background: reasonTooShort ? "var(--ink-surface-raised)" : "rgba(47, 143, 91, 0.2)", borderColor: reasonTooShort ? "var(--ink-border)" : "var(--ledger-green)" }}
+                disabled={loading || reasonTooShort}
+                onClick={() => handleOverride("mark_recovered", "Marked as recovered (human confirmed)")}
+              >
+                ✔️ Mark Recovered
+              </button>
+              <button
                 style={{ ...btnStyle, background: reasonTooShort ? "var(--ink-surface-raised)" : "var(--ledger-green)" }}
                 disabled={loading || reasonTooShort}
                 onClick={() => handleOverride("discount_link", "Issued 10% discount recovery link")}

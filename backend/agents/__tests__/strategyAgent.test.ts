@@ -137,7 +137,7 @@ describe("strategyAgent stopping rules", () => {
 
     const [decision] = decideBatch([event], [classification]);
 
-    assert.equal(decision.action, "nudge_with_discount");
+    assert.equal(decision.action, "retry_payment");
     assert.ok(decision.expected_net_value !== undefined && decision.expected_net_value > 0);
   });
 

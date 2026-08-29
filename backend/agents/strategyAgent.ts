@@ -1,6 +1,6 @@
 import { ClassificationResult, PaymentEvent, StrategyDecision, ActionType, RootCause } from "../types";
 import { estimateInterventionCost } from "./classifierAgent";
-import { estimateBaseRecoveryProbability } from "./probabilityEstimator";
+import { estimateRecoveryProbability } from "./probabilityEstimator";
 import { MAX_RETRIES, MAX_DAILY_INTERVENTION_SPEND } from "./recoveryPolicy";
 
 const ECONOMICALLY_GATED_ACTIONS: ActionType[] = ["retry_payment", "send_nudge", "nudge_with_discount", "reschedule_mandate"];
@@ -57,7 +57,7 @@ function decideAction(
   let bestExpectedRecovery = 0;
 
   for (const action of ECONOMICALLY_GATED_ACTIONS) {
-    const recovery_probability = estimateBaseRecoveryProbability(root_cause, action);
+    const recovery_probability = estimateRecoveryProbability(event, classification, action);
     // Apply 15% discount if the action is nudge_with_discount
     const base_amount = action === "nudge_with_discount" ? event.amount * 0.85 : event.amount;
     const expected_recovery_value = Math.round(base_amount * recovery_probability);

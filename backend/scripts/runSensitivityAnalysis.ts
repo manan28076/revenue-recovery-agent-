@@ -10,7 +10,10 @@ async function main() {
   console.log("Classifying batch (using fast deterministic fallback for speed)...");
   // Force fallback to avoid rate limits during analysis
   process.env.DEMO_FORCE_FAILURE = "true";
+  const originalError = console.error;
+  console.error = () => {}; // Mute red errors for a clean CLI table output
   const classifications = await classifyBatch(events, 10);
+  console.error = originalError;
 
   console.log("\n=== SENSITIVITY ANALYSIS ===");
   console.log("Testing how the agent performs if true probabilities differ from assumptions.\n");

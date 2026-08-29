@@ -386,9 +386,9 @@ app.post("/api/generate-test-link", requireAuth, async (req, res) => {
       reminder_enable: false,
     });
     res.json({ success: true, linkUrl: link.short_url, linkId: link.id });
-  } catch (err) {
-    console.error("Failed to create test link:", err);
-    res.status(500).json({ error: (err as Error).message });
+  } catch (error) {
+    console.error("OVERRIDE ERROR:", error);
+    res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -493,7 +493,7 @@ app.post("/api/override", requireAuth, async (req, res) => {
 
     res.json({ success: true, updated });
   } catch (err) {
-    console.error("Override action failed:", err);
+    console.error("OVERRIDE ERROR:", err);
     res.status(500).json({ error: (err as Error).message });
   }
 });

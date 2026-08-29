@@ -2,7 +2,11 @@
 
 [![CI](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml/badge.svg)](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml)
 
+<video src="./assets/hero-demo.mp4" autoplay loop muted playsinline width="100%"></video>
+
 > **Evaluation Results:** The agent achieved a net value of **₹7,59,072.90 (+47.0%)** compared to a "blind retry" baseline across 75 test-mode transactions, while making 25 fewer unsafe retries.
+
+![Math Proof Evaluation](./assets/math-proof.png)
 
 An autonomous, mathematically-driven recovery pipeline for failed payments, abandoned checkouts, and overdue receivables. Built for the Razorpay Buildathon.
 
@@ -37,7 +41,7 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 
 - **Mathematical Decision-Making:** Instead of hardcoded rules, the agent evaluates the economic viability of interventions. It calculates the expected net value (ENV) based on the AI's confidence score, preventing the system from spending $15 on human escalation to recover a $10 payment.
 - **Autonomous Discounting (Negotiation Agent):** The agent calculates when applying a 15% discount yields a higher expected net value than demanding the full amount (due to a higher probability of recovery for high-churn failure reasons). If the math works out, it autonomously generates a discounted Razorpay payment link.
-- **LLM Telemetry & Unit Economics:** The system captures exact latency and Gemini token usage for every AI classification, injecting this telemetry into the audit log (`"Fraud risk detected... [Telemetry: 840ms | 342 tokens | ~$0.00015]"`). This explicitly proves the latency and cost-viability of the system for production.
+- **LLM Telemetry & Unit Economics:** The system captures exact latency and Gemini token usage for every AI classification, injecting this telemetry into the audit log (`"Fraud risk detected... [Telemetry: 840ms | 342 tokens | ~$0.00015]"`). This explicitly proves the latency and cost-viability of the system for production.<br><br>![Gemini Telemetry](./assets/telemetry.png)
 - **Circuit Breaker & Spend Caps:** A safety mechanism actively monitors accumulated intervention costs during a batch. If the daily automated spend cap is hit, the system triggers a circuit breaker and automatically routes all remaining transactions to human escalation, protecting API budgets.
 - **Differentiated Execution:** The system physically distinguishes interventions via the Razorpay API. For example, a `retry_payment` action creates a link with a short 24-hour expiry to create urgency, whereas a `send_nudge` action generates a link with a 7-day expiry to give the customer time to resolve issues.
 - **Idempotent Execution & State Machine Integrity:** The pipeline checks PostgreSQL before executing any recovery action to guarantee that duplicate Razorpay payment links are never created. Furthermore, an unbreakable state machine (`evaluateOutcomeTransition`) governs the system—mathematically preventing race conditions (e.g., blocking a delayed `payment.failed` webhook from overwriting a transaction that a human just marked as `recovered`).

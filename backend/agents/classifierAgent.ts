@@ -111,9 +111,10 @@ export function calculateRecoveryProbability(
 ): number {
   if (outcome === "skipped") return 0;
 
+  const txnId = (event as any).transactionId || (event as any).transaction_id || "";
   let hash = 0;
-  for (let i = 0; i < event.transaction_id.length; i++) {
-    hash = (hash << 5) - hash + event.transaction_id.charCodeAt(i);
+  for (let i = 0; i < txnId.length; i++) {
+    hash = (hash << 5) - hash + txnId.charCodeAt(i);
     hash |= 0;
   }
   const variance = ((Math.abs(hash) % 11) - 5) / 100;
@@ -123,7 +124,8 @@ export function calculateRecoveryProbability(
   }
 
   if (outcome === "failed") {
-    const attemptPenalty = Math.min(0.08, event.attempt_count * 0.03);
+    const attemptCount = (event as any).attemptCount ?? (event as any).attempt_count ?? 0;
+    const attemptPenalty = Math.min(0.08, attemptCount * 0.03);
     return Math.max(0.12, Math.min(0.28, Number((0.22 - attemptPenalty + variance).toFixed(2))));
   }
 

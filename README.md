@@ -25,19 +25,22 @@ The pipeline is entirely decoupled, bounded, and auditable.
 Payment Events (Real + Synthetic)
       │
       ▼
-[ Classifier Agent ] ── Gemini 2.5 Flash + Deterministic Heuristic Fallback
-      │                 Diagnoses root cause, outputs confidence & evidence
+[ Classifier Agent ]      ── Gemini 2.5 Flash + Deterministic Heuristic Fallback
+      │                      Diagnoses root cause, outputs confidence & evidence
       ▼
-[ Strategy Agent ]   ── Action Selection Engine
-      │                 Calculates Expected Net Value (ENV = P(success) * Amount - Cost)
+[ Probability Estimator ] ── Contextual Calibration
+      │                      Adjusts baseline probabilities based on AI confidence, customer history, and retry counts
       ▼
-[ Execution Agent ]  ── Razorpay API Integration
-      │                 Issues test-mode Payment Links, respects API rate limits
+[ Strategy Agent ]        ── Action Selection Engine
+      │                      Calculates Expected Net Value (ENV = P(success) * Amount - Cost)
       ▼
-[ Persistence ]      ── PostgreSQL (Prisma)
-      │                 Idempotent audit trail & execution logs
+[ Execution Agent ]       ── Razorpay API Integration
+      │                      Issues test-mode Payment Links, respects API rate limits
       ▼
-[ Webhook Listener ] ── Validates signatures & updates recovery status asynchronously
+[ Persistence ]           ── PostgreSQL (Prisma)
+      │                      Idempotent audit trail & execution logs
+      ▼
+[ Webhook Listener ]      ── Validates signatures & updates recovery status asynchronously
 ```
 
 ## Core Engineering Decisions

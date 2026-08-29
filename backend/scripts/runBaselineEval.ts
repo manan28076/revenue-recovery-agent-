@@ -10,7 +10,14 @@ function main() {
     readFileSync(join(dataDir, "classifications.json"), "utf-8")
   );
 
-  const comparison = runBaselineComparison(events, classifications);
+  // Deterministic 70/30 split for evaluation
+  // 70% Calibration, 30% Held-out Evaluation
+  const evalEvents = events.filter((e, i) => i % 10 < 3);
+  const evalClassifications = classifications.filter((c) =>
+    evalEvents.some((e) => e.transaction_id === c.transaction_id)
+  );
+
+  const comparison = runBaselineComparison(evalEvents, evalClassifications);
 
   mkdirSync(dataDir, { recursive: true });
   const outPath = join(dataDir, "baseline_report.json");

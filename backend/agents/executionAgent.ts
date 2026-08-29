@@ -122,8 +122,8 @@ export async function executeBatch(
         const decision = decisionByTxn.get(event.transaction_id)!;
         const outcome = await executeAction(event, decision, existingByTxn.get(event.transaction_id));
 
-        const { calculateRecoveryProbability } = await import("./classifierAgent");
-        const recoveryProbability = calculateRecoveryProbability(event, classification.root_cause, decision.action, outcome.outcome);
+        const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("./probabilityEstimator");
+        const recoveryProbability = calculateRecoveryProbability(event, classification, decision.action, outcome.outcome as any);
 
         return {
           transaction_id: event.transaction_id,
@@ -145,6 +145,7 @@ export async function executeBatch(
           timestamp: outcome.timestamp,
           recovery_link_id: outcome.recovery_link_id,
           recovery_link_url: outcome.recovery_link_url,
+          ai_source: classification.source,
         };
       })
     );

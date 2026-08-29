@@ -33,7 +33,7 @@ async function main() {
   }
 
   const eventsByTxn = new Map(events.map((e) => [e.transaction_id, e]));
-  const { calculateRecoveryProbability } = await import("../agents/classifierAgent");
+  const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("../agents/probabilityEstimator");
 
   console.log(`Loading ${auditLog.length} audit entries into DB...`);
   for (const a of auditLog) {
@@ -41,7 +41,7 @@ async function main() {
     const recoveryProbability =
       a.recovery_probability ??
       (matchingEvent
-        ? calculateRecoveryProbability(matchingEvent, a.root_cause as any, a.action_taken as any, a.outcome)
+        ? calculateRecoveryProbability(matchingEvent, { root_cause: a.root_cause, diagnosis_confidence: a.diagnosis_confidence ?? 0.8 } as any, a.action_taken as any, a.outcome)
         : a.outcome === "recovered"
         ? 0.82
         : a.outcome === "escalated"

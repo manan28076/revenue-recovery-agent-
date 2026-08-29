@@ -53,6 +53,7 @@ model AuditLogEntry {
   expectedNetValue      Int?     @map("expected_net_value")
   recoveryLinkId       String?  @unique @map("recovery_link_id")
   recoveryLinkUrl       String?  @map("recovery_link_url")
+  aiSource            String?  @map("ai_source")
   createdAt           DateTime @default(now()) @map("created_at")
 
   paymentEvent PaymentEvent @relation(fields: [transactionId], references: [transactionId])

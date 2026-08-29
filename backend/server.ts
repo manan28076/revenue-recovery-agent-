@@ -124,7 +124,7 @@ app.post(
           });
         }
 
-        const { calculateRecoveryProbability } = await import("./agents/classifierAgent");
+        const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("./agents/probabilityEstimator");
 
         if (body.event === "payment_link.paid") {
           const paymentLink = body.payload?.payment_link?.entity;
@@ -309,6 +309,7 @@ app.post("/api/simulate-failure", requireAuth, async (req, res) => {
         expectedNetValue: auditEntry.expected_net_value ?? null,
         recoveryLinkId: auditEntry.recovery_link_id ?? null,
         recoveryLinkUrl: auditEntry.recovery_link_url ?? null,
+        aiSource: auditEntry.ai_source ?? null,
       },
     });
 
@@ -339,7 +340,7 @@ app.post("/api/simulate-webhook-event", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Transaction not found" });
     }
 
-    const { calculateRecoveryProbability } = await import("./agents/classifierAgent");
+    const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("./agents/probabilityEstimator");
     const newOutcome: "recovered" | "failed" = eventType === "payment_link.paid" ? "recovered" : "failed";
 
     const transition = evaluateOutcomeTransition(auditLog.outcome as OutcomeStatus, newOutcome);
@@ -431,7 +432,7 @@ app.post("/api/override", requireAuth, async (req, res) => {
     let recoverySource: "webhook_confirmed" | "demo_confirmed" | "human_override" | null = auditLog.recoverySource as any;
     let strategyReasoning = `${auditLog.strategyReasoning} [Merchant Action: ${overrideAction} - "${trimmedReason}"]`;
 
-    const { calculateRecoveryProbability } = await import("./agents/classifierAgent");
+    const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("./agents/probabilityEstimator");
 
     if (overrideAction === "discount_link") {
       const { createRecoveryLink } = await import("./services/recoveryLinkService");

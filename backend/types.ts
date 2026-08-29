@@ -45,9 +45,9 @@ export interface PaymentEvent {
   is_subscription: boolean;
   days_overdue?: number; // for receivables
   // New context fields for the AI
-  customer_payment_history: "high_success" | "low_success" | "new_customer";
+  customer_payment_history?: "high_success" | "low_success" | "new_customer";
   previous_successful_method?: string;
-  previous_recovery_attempts: number;
+  previous_recovery_attempts?: number;
 }
 
 export interface ClassificationResult {
@@ -56,8 +56,9 @@ export interface ClassificationResult {
 
   diagnosis_confidence: number; // 0-1
   reasoning: string;
-  evidence: string;
-  alternative_explanation: string;
+  evidence?: string;
+  alternative_explanation?: string;
+  source?: "gemini" | "deterministic_fallback";
 }
 
 export interface StrategyDecision {
@@ -105,6 +106,7 @@ export interface AuditLogEntry {
   timestamp: string;
   recovery_link_id?: string;
   recovery_link_url?: string;
+  ai_source?: "gemini" | "deterministic_fallback";
 }
 
 export interface RecoveryLinkResult {

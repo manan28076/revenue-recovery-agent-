@@ -1,6 +1,7 @@
 {
   "name": "revenue-recovery-agent",
   "version": "0.1.0",
+  "description": "Autonomous AI agent for Razorpay revenue recovery, handling failed payments and abandonments with economic decisioning.",
   "private": true,
   "scripts": {
     "generate-data": "ts-node backend/scripts/generateDataset.ts 75",

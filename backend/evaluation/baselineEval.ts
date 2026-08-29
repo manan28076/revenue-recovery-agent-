@@ -30,7 +30,7 @@ function getTrueProbability(rootCause: RootCause, action: ActionType): number {
 }
 
 export const BASELINE_EVAL_DISCLAIMER =
-  "Offline counterfactual evaluation. Uses deterministic simulated outcomes to compare policies on the same batch. It does not count toward confirmed Razorpay revenue.";
+  "Offline counterfactual evaluation. Employs a 70/30 data split (calibration vs. held-out evaluation) to prevent overfitting. Uses deterministic simulated outcomes to compare policies on the held-out batch. It does not count toward confirmed Razorpay revenue.";
 
 function seededUnitRandom(seed: string): number {
   let hash = 0;

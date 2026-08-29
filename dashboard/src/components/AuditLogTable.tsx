@@ -107,6 +107,11 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
             <p style={{ fontSize: "0.78rem", color: "var(--paper-muted)" }}>
               Diagnosis confidence: {(row.diagnosisConfidence * 100).toFixed(0)}% · Recovery probability: {(row.recoveryProbability * 100).toFixed(0)}%
             </p>
+            {row.aiSource && (
+              <p style={{ fontSize: "0.78rem", color: row.aiSource === 'gemini' ? "var(--ledger-green)" : "var(--ledger-amber)", marginTop: "4px" }}>
+                Source: {row.aiSource === 'gemini' ? 'Gemini AI' : 'Deterministic Fallback'}
+              </p>
+            )}
           </div>
           <div className="detail-block">
             <span className="detail-label">Why this action</span>

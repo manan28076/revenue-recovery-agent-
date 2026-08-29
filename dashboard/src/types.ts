@@ -27,6 +27,7 @@ export interface AuditLogRow {
   interventionCost: number | null;
   expectedNetValue: number | null;
   recoveryLinkUrl: string | null;
+  aiSource: string | null;
   paymentEvent: PaymentEventRow;
 }
 

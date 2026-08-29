@@ -50,92 +50,6 @@ Classify this event, calibrate confidence accurately, and extract evidence and a
 }
 
 
-const BASE_RECOVERY_RATE_BY_CAUSE_AND_ACTION: Record<RootCause, Partial<Record<ActionType, number>>> = {
-  card_decline: {
-    retry_payment: 0.55,
-    send_nudge: 0.30,
-    nudge_with_discount: 0.65,
-    reschedule_mandate: 0.20,
-  },
-  insufficient_funds: {
-    send_nudge: 0.42,
-    nudge_with_discount: 0.70,
-    retry_payment: 0.07, // immediate retry on the same empty balance rarely works
-    reschedule_mandate: 0.35,
-  },
-  checkout_drop: {
-    send_nudge: 0.38,
-    nudge_with_discount: 0.75,
-    retry_payment: 0.15,
-    reschedule_mandate: 0.10,
-  },
-  mandate_failure: {
-    reschedule_mandate: 0.48,
-    send_nudge: 0.25,
-    nudge_with_discount: 0.55,
-    retry_payment: 0.10,
-  },
-  receivable_overdue: {
-    send_nudge: 0.32,
-    nudge_with_discount: 0.65,
-    reschedule_mandate: 0.10,
-    retry_payment: 0.05,
-  },
-  unrecoverable_fraud: {
-    escalate_human: 0.08,
-  },
-  transient_error: {
-    retry_payment: 0.72,
-    send_nudge: 0.11,
-    nudge_with_discount: 0.30,
-    reschedule_mandate: 0.15,
-  },
-};
-
-const DEFAULT_RECOVERY_RATE = 0.30;
-
-export function estimateBaseRecoveryProbability(
-  event: PaymentEvent,
-  rootCause: RootCause,
-  action: ActionType
-): number {
-  return BASE_RECOVERY_RATE_BY_CAUSE_AND_ACTION[rootCause]?.[action] ?? DEFAULT_RECOVERY_RATE;
-}
-
-
-export function calculateRecoveryProbability(
-  event: PaymentEvent,
-  rootCause: RootCause,
-  action: ActionType,
-  outcome: OutcomeStatus = "pending"
-): number {
-  if (outcome === "skipped") return 0;
-
-  const txnId = (event as any).transactionId || (event as any).transaction_id || "";
-  let hash = 0;
-  for (let i = 0; i < txnId.length; i++) {
-    hash = (hash << 5) - hash + txnId.charCodeAt(i);
-    hash |= 0;
-  }
-  const variance = ((Math.abs(hash) % 11) - 5) / 100;
-
-  if (outcome === "escalated" || rootCause === "unrecoverable_fraud") {
-    return Math.max(0.05, Math.min(0.12, Number((0.08 + variance * 0.5).toFixed(2))));
-  }
-
-  if (outcome === "failed") {
-    const attemptCount = (event as any).attemptCount ?? (event as any).attempt_count ?? 0;
-    const attemptPenalty = Math.min(0.08, attemptCount * 0.03);
-    return Math.max(0.12, Math.min(0.28, Number((0.22 - attemptPenalty + variance).toFixed(2))));
-  }
-
-  if (outcome === "recovered") {
-    return 1.0;
-  }
-
-  // "pending": nothing new is known yet, so the (cause, action) base rate still stands.
-  return estimateBaseRecoveryProbability(event, rootCause, action);
-}
 
 export function calibrateConfidence(
   event: PaymentEvent,
@@ -190,6 +104,7 @@ function fallbackHeuristic(event: PaymentEvent): ClassificationResult {
     reasoning: `Fallback heuristic mapping from failure_code (${event.failure_code}); Gemini was unavailable so this is a deterministic rule, not a model diagnosis.`,
     evidence: `failure_code is ${event.failure_code}`,
     alternative_explanation: "N/A - Fallback heuristic applied",
+    source: "deterministic_fallback",
   };
 }
 
@@ -267,6 +182,7 @@ export async function classifyEvent(
       reasoning: `${String(parsed.reasoning || "").slice(0, 300)} ${telemetryString}`,
       evidence: String(parsed.evidence || ""),
       alternative_explanation: String(parsed.alternative_explanation || ""),
+      source: "gemini",
     };
   } catch (err) {
     if (isQuotaError(err) && !isDailyQuotaError(err) && attempt < 3) {

@@ -9,9 +9,22 @@ https://github.com/user-attachments/assets/90a2f1c6-bf00-4db5-95d2-8c9ab60a1cf0
 
 
 
-> **Evaluation Results:** The agent achieved a net value of **₹7,59,072.90 (+47.0%)** compared to a "blind retry" baseline across 75 test-mode transactions, while making 25 fewer unsafe retries.
+> **Evaluation Results:** On a 30% held-out evaluation set (24 events), the agent achieved a net value of **₹1,91,421.63** (-9.4% vs blind retry), but made **7 fewer unsafe retries**, demonstrating safe degradation and strict adherence to economic stopping rules.
 
-![Math Proof Evaluation](./assets/math-proof.png)
+```text
+=== Baseline Evaluation (24 events) ===
+⚠️  Offline counterfactual evaluation. Employs a 70/30 data split (calibration vs. held-out evaluation) to prevent overfitting. Uses deterministic simulated outcomes to compare policies on the held-out batch. It does not count toward confirmed Razorpay revenue.
+
+┌─────────┬───────────────────────────────────────────────────────────┬─────────────────────┬───────────────────────┬───────────────┬───────────────┬─────────────┬───────────────────────────┐
+│ (index) │ Strategy                                                  │ Gross recovered (₹) │ Intervention cost (₹) │ Net value (₹) │ Actions taken │ Escalations │ Unnecessary interventions │
+├─────────┼───────────────────────────────────────────────────────────┼─────────────────────┼───────────────────────┼───────────────┼───────────────┼─────────────┼───────────────────────────┤
+│ 0       │ 'Do nothing'                                              │ '0'                 │ '0'                   │ '0'           │ 0             │ 0           │ 0                         │
+│ 1       │ 'Blind retry (retry everything, no rules)'                │ '2,11,418.14'       │ '227'                 │ '2,11,191.14' │ 24            │ 0           │ 7                         │
+│ 2       │ 'Your agent (diagnosis + policy engine + bounded action)' │ '1,93,091.63'       │ '1,670'               │ '1,91,421.63' │ 14            │ 10          │ 0                         │
+└─────────┴───────────────────────────────────────────────────────────┴─────────────────────┴───────────────────────┴───────────────┴───────────────┴─────────────┴───────────────────────────┘
+
+Agent net value is -9.4% vs blind retry, with 7 fewer unsafe retries.
+```
 
 An autonomous, mathematically-driven recovery pipeline for failed payments, abandoned checkouts, and overdue receivables. Built for the Razorpay Buildathon.
 

@@ -3,6 +3,12 @@
 [![CI](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml/badge.svg)](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml)
 
 
+
+
+https://github.com/user-attachments/assets/90a2f1c6-bf00-4db5-95d2-8c9ab60a1cf0
+
+
+
 > **Evaluation Results:** The agent achieved a net value of **₹7,59,072.90 (+47.0%)** compared to a "blind retry" baseline across 75 test-mode transactions, while making 25 fewer unsafe retries.
 
 ![Math Proof Evaluation](./assets/math-proof.png)

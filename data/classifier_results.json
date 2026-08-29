@@ -1,0 +1,71 @@
+{
+  "datasetSize": 525,
+  "accuracy": 0.7276,
+  "macroPrecision": 0.9063,
+  "macroRecall": 0.7276,
+  "macroF1": 0.7494,
+  "perCategory": {
+    "card_decline": {
+      "precision": 100,
+      "recall": 41.33,
+      "f1": 58.49
+    },
+    "insufficient_funds": {
+      "precision": 100,
+      "recall": 100,
+      "f1": 100
+    },
+    "checkout_drop": {
+      "precision": 100,
+      "recall": 50.67,
+      "f1": 67.26
+    },
+    "mandate_failure": {
+      "precision": 100,
+      "recall": 64,
+      "f1": 78.05
+    },
+    "receivable_overdue": {
+      "precision": 100,
+      "recall": 100,
+      "f1": 100
+    },
+    "unrecoverable_fraud": {
+      "precision": 100,
+      "recall": 53.33,
+      "f1": 69.57
+    },
+    "transient_error": {
+      "precision": 34.4,
+      "recall": 100,
+      "f1": 51.19
+    }
+  },
+  "confusionMatrix": {
+    "card_decline": {
+      "card_decline": 31,
+      "transient_error": 44
+    },
+    "insufficient_funds": {
+      "insufficient_funds": 75
+    },
+    "checkout_drop": {
+      "transient_error": 37,
+      "checkout_drop": 38
+    },
+    "mandate_failure": {
+      "transient_error": 27,
+      "mandate_failure": 48
+    },
+    "receivable_overdue": {
+      "receivable_overdue": 75
+    },
+    "unrecoverable_fraud": {
+      "transient_error": 35,
+      "unrecoverable_fraud": 40
+    },
+    "transient_error": {
+      "transient_error": 75
+    }
+  }
+}

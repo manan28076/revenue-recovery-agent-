@@ -212,7 +212,22 @@ app.post(
 
 app.use(express.json());
 
+const askRateLimits = new Map<string, { count: number; resetAt: number }>();
+const MAX_ASK_PER_MINUTE = 10;
+
 app.post("/api/ask", async (req, res) => {
+  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  const now = Date.now();
+  const rateLimit = askRateLimits.get(ip);
+  if (rateLimit && now < rateLimit.resetAt) {
+    if (rateLimit.count >= MAX_ASK_PER_MINUTE) {
+      return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
+    }
+    rateLimit.count++;
+  } else {
+    askRateLimits.set(ip, { count: 1, resetAt: now + 60 * 1000 });
+  }
+
   const question = req.body?.question;
   if (typeof question !== "string" || question.trim().length === 0) {
     return res.status(400).json({ error: "question is required" });

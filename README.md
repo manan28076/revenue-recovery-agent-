@@ -69,7 +69,7 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 - **Secured Administration:** All state-mutating API endpoints (test-mode webhook triggers, manual overrides) are protected via Bearer Token authentication to prevent unauthorized tampering of the financial audit trail.
 - **Resilient Fallbacks:** The classifier handles API rate limits (HTTP 429) via exponential backoff and gracefully degrades to a deterministic heuristic if the LLM becomes entirely unavailable.
 - **Independent Evaluation & Sensitivity Analysis:** The agent's performance is graded against an independent counterfactual outcome matrix. We include a mathematically proven `Sensitivity Analysis` script that demonstrates the agent outperforms a "blind retry" baseline even if real-world probabilities are 20% worse than our assumptions.
-- **Bounded Q&A:** The dashboard features a natural language interface over the database. Rather than allowing raw text-to-SQL, it uses a whitelisted filter extractor (`qaFilterGuard.ts`) mapped to safe Prisma aggregates, ensuring zero risk of injection or hallucination of financial totals.
+- **Bounded Q&A:** The dashboard features a natural language interface over the database. Rather than allowing raw text-to-SQL, it uses a whitelisted filter extractor (`qaFilterGuard.ts`) mapped to safe Prisma aggregates, ensuring zero risk of injection or hallucination of financial totals. The underlying endpoint (`/api/ask`) is also strictly rate-limited to prevent abuse of the Gemini API.
 
 ## Integration Matrix
 

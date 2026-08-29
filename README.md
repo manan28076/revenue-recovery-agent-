@@ -56,6 +56,34 @@ Payment Events (Real + Synthetic)
 [ Webhook Listener ]      ── Validates signatures & updates recovery status asynchronously
 ```
 
+## Revenue Integrity
+
+1. Verified recovery comes only from Razorpay-confirmed payment events.
+2. Simulator results are separated from verified revenue and explicitly labeled.
+3. Recovery potential is an estimate, not actual recovered money.
+
+## AI Evaluation
+
+To prove the accuracy of the AI root-cause classifier, we built an independent evaluation suite.
+- **Dataset:** 500+ synthetic ground-truth examples covering all 7 classification categories (card declines, insufficient funds, etc.).
+- **Metrics Calculated:** Accuracy, Macro Precision, Macro Recall, and Macro F1 score.
+- **How to run:** You can reproduce the classifier evaluation by running:
+  ```bash
+  npm run generate:dataset
+  npm run evaluate:classifier
+  ```
+  Results (including a confusion matrix) are saved to `data/classifier_results.json`.
+
+## Economic Decisioning
+
+The system does not blindly retry every failed payment. It evaluates whether an intervention is mathematically viable.
+
+```text
+Expected Recovery Value = Amount At Risk × Recovery Probability − Intervention Cost
+```
+
+*Note: Probabilities and intervention costs in this implementation are hackathon assumptions intended to demonstrate the architecture. In a real deployment, these would be calibrated using historical production outcome data.*
+
 ## Core Engineering Decisions
 
 We built this agent to mimic a production-grade enterprise system rather than a fragile hackathon prototype. Key technical constraints handled include:

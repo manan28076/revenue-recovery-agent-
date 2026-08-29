@@ -36,28 +36,34 @@ export function SummaryCards({ report }: { report: ReportData }) {
       format: (n: number) => formatInr(n),
     },
     {
+      label: "Verified Revenue Recovered",
+      target: report.total_verified_revenue_recovered,
+      format: (n: number) => formatInr(n),
+      hint: `Real, confirmed money only - webhook-verified payments or explicit merchant confirmation.`,
+    },
+    {
+      label: "Total Recovery Potential",
+      target: report.total_expected_recovery_potential,
+      format: (n: number) => formatInr(n),
+      hint: "Total expected net value of eligible recovery opportunities.",
+    },
+    {
+      label: "Estimated Recovery Potential",
+      target: report.total_amount_predicted_recovered,
+      format: (n: number) => formatInr(n),
+      hint: "Probability-weighted expected value of pending cases.",
+    },
+    {
+      label: "Simulated Recovery",
+      target: report.total_simulated_recovery,
+      format: (n: number) => formatInr(n),
+      hint: "Demo simulator successes. NOT verified revenue.",
+    },
+    {
       label: "Recovery actions initiated",
       target: report.total_amount_actions_initiated,
       format: (n: number) => formatInr(n),
-      hint: "Amount actively pursued via retry, nudge, or mandate reschedule - regardless of whether it has resolved yet.",
-    },
-    {
-      label: "Pending confirmation",
-      target: report.total_amount_pending_confirmation,
-      format: (n: number) => formatInr(n),
-      hint: "Awaiting a real webhook or override. Not recovered, not failed - still in flight.",
-    },
-    {
-      label: "Confirmed recovered",
-      target: report.total_amount_confirmed_recovered,
-      format: (n: number) => formatInr(n),
-      hint: `Real, confirmed money only - webhook-verified payments or explicit merchant confirmation. ${(report.confirmed_recovery_rate * 100).toFixed(1)}% of revenue at risk.`,
-    },
-    {
-      label: "Predicted recovery (unconfirmed)",
-      target: report.total_amount_predicted_recovered,
-      format: (n: number) => formatInr(n),
-      hint: "Probability-weighted expected value of pending cases - a model estimate, NOT a confirmed payment. Fire a webhook against a transaction to confirm it for real.",
+      hint: "Amount actively pursued via retry, nudge, or mandate reschedule.",
     },
   ];
 

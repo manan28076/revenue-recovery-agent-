@@ -38,6 +38,9 @@ export interface ReportData {
   // Full amount currently awaiting a real confirmation (outcome === "pending").
   total_amount_pending_confirmation: number;
   total_amount_confirmed_recovered: number;
+  total_verified_revenue_recovered: number;
+  total_simulated_recovery: number;
+  total_expected_recovery_potential: number;
   confirmed_recovery_rate: number;
   total_amount_predicted_recovered: number;
   total_expected_net_value: number;

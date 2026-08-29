@@ -559,6 +559,9 @@ app.get("/api/report", async (_req, res) => {
   let total_amount_pending_confirmation = 0;
   let total_amount_confirmed_recovered = 0;
   let total_amount_predicted_recovered = 0;
+  let total_verified_revenue_recovered = 0;
+  let total_simulated_recovery = 0;
+  let total_expected_recovery_potential = 0;
 
   let total_expected_net_value = 0;
 
@@ -574,6 +577,9 @@ app.get("/api/report", async (_req, res) => {
     if (e.expectedNetValue != null) {
       total_expected_net_value += e.expectedNetValue;
     }
+    if (e.expectedNetValue != null && e.expectedNetValue > 0) {
+      total_expected_recovery_potential += e.expectedNetValue;
+    }
 
     if (e.outcome === "pending") {
       total_amount_pending_confirmation += e.paymentEvent.amount;
@@ -582,6 +588,12 @@ app.get("/api/report", async (_req, res) => {
       const source = e.recoverySource ?? "webhook_confirmed";
       recovery_source_breakdown[source] = (recovery_source_breakdown[source] || 0) + 1;
       total_amount_confirmed_recovered += e.amountRecovered;
+      
+      if (source === "webhook_confirmed" || source === "human_override") {
+        total_verified_revenue_recovered += e.amountRecovered;
+      } else if (source === "demo_confirmed") {
+        total_simulated_recovery += e.amountRecovered;
+      }
     }
   }
 
@@ -597,6 +609,9 @@ app.get("/api/report", async (_req, res) => {
     total_amount_actions_initiated,
     total_amount_pending_confirmation,
     total_amount_confirmed_recovered,
+    total_verified_revenue_recovered,
+    total_simulated_recovery,
+    total_expected_recovery_potential,
     confirmed_recovery_rate: total_amount_at_risk > 0 ? total_amount_confirmed_recovered / total_amount_at_risk : 0,
     total_amount_predicted_recovered,
     total_expected_net_value,

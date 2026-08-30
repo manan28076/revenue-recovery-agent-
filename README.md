@@ -45,21 +45,21 @@ graph TD
 
     %% External Systems
     subgraph External["External Systems (Razorpay)"]
-        W[Razorpay Webhooks<br/>'payment.failed']:::external
-        PG[Razorpay Payment Links API]:::external
+        W["Razorpay Webhooks<br/>'payment.failed'"]:::external
+        PG["Razorpay Payment Links API"]:::external
     end
 
     %% Agent Pipeline
     subgraph Pipeline["Autonomous Agent Pipeline"]
         direction TB
-        C[1. Classifier Agent<br/>Gemini 2.5 Flash]:::agent
-        S[2. Strategy & Math Engine<br/>Expected Net Value (ENV)]:::core
-        E[3. Execution Agent<br/>Action Router]:::agent
+        C["1. Classifier Agent<br/>Gemini 2.5 Flash"]:::agent
+        S["2. Strategy & Math Engine<br/>Expected Net Value (ENV)"]:::core
+        E["3. Execution Agent<br/>Action Router"]:::agent
     end
 
     %% State & UI
-    DB[(PostgreSQL Database<br/>Prisma ORM)]:::db
-    UI[React Dashboard<br/>Live Telemetry & Audits]:::ui
+    DB[("PostgreSQL Database<br/>Prisma ORM")]:::db
+    UI["React Dashboard<br/>Live Telemetry & Audits"]:::ui
 
     %% Data Flow
     W -->|Raw Event Trigger| C

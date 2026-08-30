@@ -1,6 +1,21 @@
 # Revenue Recovery Agent
 
 [![CI](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml/badge.svg)](https://github.com/manan28076/revenue-recovery-agent-/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+## Contents
+- [Demo](#-safety-first-evaluation-results)
+- [Mathematical Proof of Value](#mathematical-proof-of-value-monte-carlo-simulation)
+- [System Architecture](#system-architecture)
+- [Revenue Integrity](#revenue-integrity)
+- [AI Evaluation](#ai-evaluation)
+- [Economic Decisioning](#economic-decisioning)
+- [Core Engineering Decisions](#core-engineering-decisions)
+- [Integration Matrix](#integration-matrix)
+- [Known Limitations](#known-limitations--what-id-build-next)
+- [Local Development Setup](#local-development-setup)
+- [Tech Stack](#tech-stack)
+- [Author](#author)
 
 
 
@@ -252,3 +267,12 @@ To test the live confirmation of recovered payments:
 - **Storage:** PostgreSQL, Prisma ORM
 - **Intelligence:** Google GenAI SDK (Gemini 2.5 Flash)
 - **Payments:** Razorpay Node SDK
+
+## Author
+
+**Manan** — built for the Razorpay Buildathon (Track 3: AI Revenue Recovery).
+[GitHub](https://github.com/manan28076)
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

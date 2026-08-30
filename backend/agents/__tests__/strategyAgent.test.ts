@@ -170,4 +170,39 @@ describe("strategyAgent stopping rules", () => {
       ["txn_a", "txn_b", "txn_c"]
     );
   });
+
+  test("selects nudge_with_discount only when its expected net value is higher than send_nudge", () => {
+    // We can manipulate the exported INTERVENTION_COST_PAISE object to force a scenario 
+    // where send_nudge mathematically wins, because otherwise the default 15% discount 
+    // mathematically dominates send_nudge's base rates across all root causes.
+    const classifierModule = require("../classifierAgent");
+    const originalNudgeCost = classifierModule.INTERVENTION_COST_PAISE.send_nudge;
+    const originalDiscountCost = classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount;
+    const originalRetryCost = classifierModule.INTERVENTION_COST_PAISE.retry_payment;
+
+    try {
+      // Scenario 1: Discount wins natively on insufficient_funds
+      const event1 = makeEvent({ amount: 100000, failure_code: "insufficient_funds" });
+      const classif1 = makeClassification({ root_cause: "insufficient_funds", diagnosis_confidence: 1.0 });
+      const [decision1] = decideBatch([event1], [classif1]);
+      assert.equal(decision1.action, "nudge_with_discount");
+
+      // Scenario 2: Force full-price nudge to win by making discount cost absurdly high
+      // and making retry_payment cost absurdly high so it doesn't steal the win.
+      classifierModule.INTERVENTION_COST_PAISE.retry_payment = 9999999;
+      classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount = 9999999;
+      classifierModule.INTERVENTION_COST_PAISE.send_nudge = 0;
+
+      const event2 = makeEvent({ amount: 100000, failure_code: "insufficient_funds" });
+      const classif2 = makeClassification({ root_cause: "insufficient_funds", diagnosis_confidence: 1.0 });
+      const [decision2] = decideBatch([event2], [classif2]);
+      
+      assert.equal(decision2.action, "send_nudge");
+    } finally {
+      // Restore costs
+      classifierModule.INTERVENTION_COST_PAISE.send_nudge = originalNudgeCost;
+      classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount = originalDiscountCost;
+      classifierModule.INTERVENTION_COST_PAISE.retry_payment = originalRetryCost;
+    }
+  });
 });

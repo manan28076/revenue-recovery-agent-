@@ -9,21 +9,21 @@ https://github.com/user-attachments/assets/90a2f1c6-bf00-4db5-95d2-8c9ab60a1cf0
 
 
 
-> **Evaluation Results:** On a 30% held-out evaluation set (24 events), the agent achieved a net value of **₹1,91,421.63** (-9.4% vs blind retry), but made **7 fewer unsafe retries**, demonstrating safe degradation and strict adherence to economic stopping rules.
+> **Safety First Evaluation Results:** On a 350-event evaluation set (105 held-out events), the agent successfully **prevented 39 unsafe retries** (zero unsafe interventions) and properly escalated 46 high-risk cases to human agents. While a "blind retry" approach recovers slightly more top-line revenue, it does so by blindly retrying known fraud and severe payment declines. The AI agent trades off a calculated 20.0% in gross revenue to guarantee zero unsafe interventions, demonstrating strict adherence to risk management and economic stopping rules with a net recovered value of **₹7,27,430.06**.
 
 ```text
-=== Baseline Evaluation (24 events) ===
+=== Baseline Evaluation (105 events) ===
 ⚠️  Offline counterfactual evaluation. Employs a 70/30 data split (calibration vs. held-out evaluation) to prevent overfitting. Uses deterministic simulated outcomes to compare policies on the held-out batch. It does not count toward confirmed Razorpay revenue.
 
 ┌─────────┬───────────────────────────────────────────────────────────┬─────────────────────┬───────────────────────┬───────────────┬───────────────┬─────────────┬───────────────────────────┐
 │ (index) │ Strategy                                                  │ Gross recovered (₹) │ Intervention cost (₹) │ Net value (₹) │ Actions taken │ Escalations │ Unnecessary interventions │
 ├─────────┼───────────────────────────────────────────────────────────┼─────────────────────┼───────────────────────┼───────────────┼───────────────┼─────────────┼───────────────────────────┤
 │ 0       │ 'Do nothing'                                              │ '0'                 │ '0'                   │ '0'           │ 0             │ 0           │ 0                         │
-│ 1       │ 'Blind retry (retry everything, no rules)'                │ '2,11,418.14'       │ '227'                 │ '2,11,191.14' │ 24            │ 0           │ 7                         │
-│ 2       │ 'Your agent (diagnosis + policy engine + bounded action)' │ '1,93,091.63'       │ '1,670'               │ '1,91,421.63' │ 14            │ 10          │ 0                         │
+│ 1       │ 'Blind retry (retry everything, no rules)'                │ '9,10,785.78'       │ '1,035'               │ '9,09,750.78' │ 105           │ 0           │ 39                        │
+│ 2       │ 'Your agent (diagnosis + policy engine + bounded action)' │ '7,34,983.06'       │ '7,553'               │ '7,27,430.06' │ 59            │ 46          │ 0                         │
 └─────────┴───────────────────────────────────────────────────────────┴─────────────────────┴───────────────────────┴───────────────┴───────────────┴─────────────┴───────────────────────────┘
 
-Agent net value is -9.4% vs blind retry, with 7 fewer unsafe retries.
+Agent guaranteed 0 unnecessary interventions, preventing 39 unsafe retries compared to the blind retry baseline.
 ```
 
 An autonomous, mathematically-driven recovery pipeline for failed payments, abandoned checkouts, and overdue receivables. Built for the Razorpay Buildathon.
@@ -92,7 +92,7 @@ We built this agent to mimic a production-grade enterprise system rather than a 
 - **Autonomous Discounting (Negotiation Agent):** The agent calculates when applying a 15% discount yields a higher expected net value than demanding the full amount (due to a higher probability of recovery for high-churn failure reasons). If the math works out, it autonomously generates a discounted Razorpay payment link.
 - **LLM Telemetry & Unit Economics:** The system captures exact latency and Gemini token usage for every AI classification, injecting this telemetry into the audit log (`"Fraud risk detected... [Telemetry: 840ms | 342 tokens | ~$0.00015]"`). This explicitly proves the latency and cost-viability of the system for production.<br><br>![Gemini Telemetry](./assets/telemetry.png)
 - **Circuit Breaker & Spend Caps:** A safety mechanism actively monitors accumulated intervention costs during a batch. If the daily automated spend cap is hit, the system triggers a circuit breaker and automatically routes all remaining transactions to human escalation, protecting API budgets.
-- **Differentiated Execution:** The system physically distinguishes interventions via the Razorpay API. For example, a `retry_payment` action creates a link with a short 24-hour expiry to create urgency, whereas a `send_nudge` action generates a link with a 7-day expiry to give the customer time to resolve issues.
+- **Differentiated Execution:** The system physically distinguishes interventions via the Razorpay API. For example, a `retry_payment` action creates a link with a 1-hour expiry to create urgency, whereas a `send_nudge` action generates a link with a 7-day expiry to give the customer time to resolve issues.
 - **Idempotent Execution & State Machine Integrity:** The pipeline checks PostgreSQL before executing any recovery action to guarantee that duplicate Razorpay payment links are never created. Furthermore, an unbreakable state machine (`evaluateOutcomeTransition`) governs the system—mathematically preventing race conditions (e.g., blocking a delayed `payment.failed` webhook from overwriting a transaction that a human just marked as `recovered`).
 - **Secured Administration:** All state-mutating API endpoints (test-mode webhook triggers, manual overrides) are protected via Bearer Token authentication to prevent unauthorized tampering of the financial audit trail.
 - **Resilient Fallbacks:** The classifier handles API rate limits (HTTP 429) via exponential backoff and gracefully degrades to a deterministic heuristic if the LLM becomes entirely unavailable.

@@ -9,7 +9,7 @@ async function main() {
   const events: PaymentEvent[] = JSON.parse(readFileSync(dataPath, "utf-8"));
 
   console.log(`Loaded ${events.length} events. Classifying...`);
-  const results = await classifyBatch(events);
+  const results = await classifyBatch(events, 10);
 
   const dataDir = join(__dirname, "..", "..", "data");
   mkdirSync(dataDir, { recursive: true });

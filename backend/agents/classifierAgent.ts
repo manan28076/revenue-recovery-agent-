@@ -29,9 +29,10 @@ IMPORTANT CONFIDENCE CALIBRATION INSTRUCTIONS:
 - Output high confidence (0.85 - 0.96) ONLY when failure_code and event signals strictly align.
 - Output moderate confidence (0.55 - 0.80) when details are partial or standard retry attempts are increasing.
 - Output low confidence (0.35 - 0.49) when event parameters are ambiguous, missing checkout stage, or conflicting (e.g. high attempt count with generic error code).
+- You must also output a \`frustration_score\` (0.0 to 1.0). 1.0 means the customer is highly likely to churn based on the context (e.g. lots of failed attempts, card declined). 0.0 means they are likely a loyal customer who will easily retry.
 
 Respond ONLY with valid JSON, no markdown fences, no preamble, matching this structure exactly:
-{"root_cause": "<one of the values above>", "confidence": <0.0-1.0>, "reasoning": "<one sentence>", "evidence": "<point out specific fields that led to this>", "alternative_explanation": "<what else it could be, if confidence is low>"}`;;
+{"root_cause": "<one of the values above>", "confidence": <0.0-1.0>, "frustration_score": <0.0-1.0>, "reasoning": "<one sentence>", "evidence": "<point out specific fields that led to this>", "alternative_explanation": "<what else it could be, if confidence is low>"}`;;
 
 function buildEventPrompt(event: PaymentEvent): string {
   return `Payment event:
@@ -101,6 +102,7 @@ function fallbackHeuristic(event: PaymentEvent): ClassificationResult {
     root_cause,
 
     diagnosis_confidence: 0.6,
+    frustration_score: 0.5,
     reasoning: `Fallback heuristic mapping from failure_code (${event.failure_code}); Gemini was unavailable so this is a deterministic rule, not a model diagnosis.`,
     evidence: `failure_code is ${event.failure_code}`,
     alternative_explanation: "N/A - Fallback heuristic applied",
@@ -179,6 +181,7 @@ export async function classifyEvent(
       transaction_id: event.transaction_id,
       root_cause: parsed.root_cause,
       diagnosis_confidence: calibratedConfidence,
+      frustration_score: Number(parsed.frustration_score) || 0.5,
       reasoning: `${String(parsed.reasoning || "").slice(0, 300)} ${telemetryString}`,
       evidence: String(parsed.evidence || ""),
       alternative_explanation: String(parsed.alternative_explanation || ""),

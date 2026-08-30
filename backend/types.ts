@@ -58,6 +58,7 @@ export interface ClassificationResult {
   reasoning: string;
   evidence?: string;
   alternative_explanation?: string;
+  frustration_score?: number; // 0.0 to 1.0 AI-generated churn risk score
   source?: "gemini" | "deterministic_fallback";
 }
 

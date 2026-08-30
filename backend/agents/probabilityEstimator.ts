@@ -92,8 +92,13 @@ export function estimateRecoveryProbability(
   const REGRESSION_BASELINE = 0.15;
   const calibratedProb = (baseProb * conf) + (REGRESSION_BASELINE * (1 - conf));
 
+  // Dynamic AI Sentiment Penalty:
+  // If the AI determined the customer is frustrated (high churn risk), we heavily penalize the probability.
+  const frustration = classification.frustration_score ?? 0.5;
+  const dynamicAiPenalty = frustration * 0.15; // up to 15% absolute penalty for highly frustrated users
+
   // Contextual adjusters:
-  let finalProb = calibratedProb;
+  let finalProb = calibratedProb - dynamicAiPenalty;
 
   // Penalize high attempt count
   if (attemptCount > 2) {

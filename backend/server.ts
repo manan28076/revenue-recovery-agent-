@@ -153,7 +153,7 @@ app.post(
             return;
           }
 
-          const newRecoveryProbability = calculateRecoveryProbability(existing.paymentEvent as any, existing.rootCause as any, existing.actionTaken as any, "recovered");
+          const newRecoveryProbability = calculateRecoveryProbability(existing.paymentEvent as any, { root_cause: existing.rootCause, diagnosis_confidence: existing.diagnosisConfidence, frustration_score: 0.5 } as any, existing.actionTaken as any, "recovered");
           await tx.auditLogEntry.update({
             where: { transactionId: existing.transactionId },
             data: {
@@ -181,7 +181,7 @@ app.post(
             return;
           }
 
-          const newRecoveryProbability = calculateRecoveryProbability(existing.paymentEvent as any, existing.rootCause as any, existing.actionTaken as any, "failed");
+          const newRecoveryProbability = calculateRecoveryProbability(existing.paymentEvent as any, { root_cause: existing.rootCause, diagnosis_confidence: existing.diagnosisConfidence, frustration_score: 0.5 } as any, existing.actionTaken as any, "failed");
           await tx.auditLogEntry.update({
             where: { transactionId: existing.transactionId },
             data: {
@@ -368,7 +368,7 @@ app.post("/api/simulate-webhook-event", requireAuth, async (req, res) => {
 
     const amountRecovered = newOutcome === "recovered" ? auditLog.paymentEvent.amount : 0;
 
-    const newRecoveryProbability = calculateRecoveryProbability(auditLog.paymentEvent as any, auditLog.rootCause as any, auditLog.actionTaken as any, newOutcome);
+    const newRecoveryProbability = calculateRecoveryProbability(auditLog.paymentEvent as any, { root_cause: auditLog.rootCause, diagnosis_confidence: auditLog.diagnosisConfidence, frustration_score: 0.5 } as any, auditLog.actionTaken as any, newOutcome);
 
     const updated = await prisma.auditLogEntry.update({
       where: { transactionId },
@@ -462,7 +462,7 @@ app.post("/api/override", requireAuth, async (req, res) => {
 
       updatedOutcome = "pending";
       amountRecovered = 0;
-      const probability = calculateRecoveryProbability(auditLog.paymentEvent as any, auditLog.rootCause as any, auditLog.actionTaken as any, "pending");
+      const probability = calculateRecoveryProbability(auditLog.paymentEvent as any, { root_cause: auditLog.rootCause, diagnosis_confidence: auditLog.diagnosisConfidence, frustration_score: 0.5 } as any, auditLog.actionTaken as any, "pending");
       predictedRecoveryAmount = Math.round(discountedAmount * probability);
       recoveryLinkUrl = link.short_url;
       recoveryLinkId = link.razorpay_payment_link_id;
@@ -488,7 +488,7 @@ app.post("/api/override", requireAuth, async (req, res) => {
       // Intent logged in strategy reasoning; no state change
     }
 
-    const updatedRecoveryProbability = calculateRecoveryProbability(auditLog.paymentEvent as any, auditLog.rootCause as any, auditLog.actionTaken as any, updatedOutcome as any);
+    const updatedRecoveryProbability = calculateRecoveryProbability(auditLog.paymentEvent as any, { root_cause: auditLog.rootCause, diagnosis_confidence: auditLog.diagnosisConfidence, frustration_score: 0.5 } as any, auditLog.actionTaken as any, updatedOutcome as any);
 
     const [updated] = await prisma.$transaction([
       prisma.auditLogEntry.update({

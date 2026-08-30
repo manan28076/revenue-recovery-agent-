@@ -25,6 +25,7 @@ function makeClassification(overrides: Partial<ClassificationResult> = {}): Clas
     transaction_id: "txn_test_0001",
     root_cause: "card_decline",
     diagnosis_confidence: 0.9,
+    frustration_score: 0.0,
     reasoning: "test",
     ...overrides,
   };

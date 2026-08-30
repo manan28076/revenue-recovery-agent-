@@ -33,6 +33,7 @@ test("probabilityEstimator", async (t) => {
       transaction_id: "txn_123",
       root_cause: "card_decline",
       diagnosis_confidence: 0.9,
+      frustration_score: 0.0,
       reasoning: "Looks like a card decline",
       source: "gemini"
     };
@@ -63,6 +64,7 @@ test("probabilityEstimator", async (t) => {
       transaction_id: "txn_123",
       root_cause: "card_decline",
       diagnosis_confidence: 0.9,
+      frustration_score: 0.0,
       reasoning: "Looks like a card decline",
     };
 

@@ -27,11 +27,11 @@ for (let i = 0; i < NUM_SIMULATIONS; i++) {
         amount,
         currency: "INR",
         status: "failed",
-        failure_code: "err",
+        failure_code: "network_error",
         payment_method: "card",
         customer_id: "cust_sim",
         attempt_count,
-        checkout_stage: "payment",
+        checkout_stage: "payment_selection",
         timestamp: new Date().toISOString(),
         is_subscription: false
     };

@@ -37,7 +37,56 @@ export interface QaResult {
 const CANNOT_DETERMINE_FILTER_MESSAGE =
   "I couldn't safely determine what you're asking - please rephrase, or be specific about a transaction id, root cause, action, or outcome you're interested in.";
 
+interface CacheEntry {
+  question: string;
+  embedding: number[];
+  result: QaResult;
+}
+
+const semanticCache: CacheEntry[] = [];
+const SIMILARITY_THRESHOLD = 0.95;
+
+function cosineSimilarity(vecA: number[], vecB: number[]): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function getEmbedding(text: string): Promise<number[]> {
+  try {
+    const response = await ai.models.embedContent({
+      model: "embedding-001",
+      contents: text,
+    });
+    return response.embeddings?.[0]?.values || [];
+  } catch (error) {
+    console.error("Embedding generation failed:", error);
+    return [];
+  }
+}
+
 export async function askQuestion(question: string): Promise<QaResult> {
+  // 1. Generate embedding for the question
+  const questionEmbedding = await getEmbedding(question);
+
+  // 2. Check semantic cache
+  if (questionEmbedding.length > 0) {
+    for (const entry of semanticCache) {
+      const similarity = cosineSimilarity(questionEmbedding, entry.embedding);
+      if (similarity >= SIMILARITY_THRESHOLD) {
+        console.log(`[Semantic Cache Hit] Similarity: ${similarity.toFixed(4)} matched: "${entry.question}"`);
+        return entry.result;
+      }
+    }
+  }
+
   let filter: SafeFilter = {};
   let extractionSucceeded = false;
 
@@ -92,9 +141,23 @@ ${JSON.stringify(exampleSample)}
 Answer in 1-3 plain sentences. Use the verified aggregate numbers for any financial totals or counts. If nothing matched, say so.`,
     });
     const answer = (phraseResult.text || "").trim() || templatedFallback(aggregates, filter);
-    return { answer, matched_count: aggregates.count, filter_used: filter };
+    const result = { answer, matched_count: aggregates.count, filter_used: filter };
+    
+    // 3. Save to cache
+    if (questionEmbedding.length > 0) {
+      semanticCache.push({ question, embedding: questionEmbedding, result });
+    }
+    
+    return result;
   } catch (err) {
     console.error("QA answer phrasing failed, using templated fallback:", (err as Error).message);
-    return { answer: templatedFallback(aggregates, filter), matched_count: aggregates.count, filter_used: filter };
+    const fallbackResult = { answer: templatedFallback(aggregates, filter), matched_count: aggregates.count, filter_used: filter };
+    
+    // Save fallback to cache too
+    if (questionEmbedding.length > 0) {
+      semanticCache.push({ question, embedding: questionEmbedding, result: fallbackResult });
+    }
+    
+    return fallbackResult;
   }
 }

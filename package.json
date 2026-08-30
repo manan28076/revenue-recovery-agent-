@@ -4,6 +4,7 @@
   "description": "Autonomous AI agent for Razorpay revenue recovery, handling failed payments and abandonments with economic decisioning.",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "generate-data": "ts-node backend/scripts/generateDataset.ts 350",
     "seed-real-data": "ts-node backend/scripts/seedRealData.ts 20 35",
     "db:up": "docker compose up -d",

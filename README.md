@@ -34,26 +34,44 @@ The system orchestrates three distinct processes: it uses an LLM to accurately d
 
 The pipeline is entirely decoupled, bounded, and auditable.
 
-```text
-Payment Events (Real + Synthetic)
-      │
-      ▼
-[ Classifier Agent ]      ── Gemini 2.5 Flash + Deterministic Heuristic Fallback
-      │                      Diagnoses root cause, outputs confidence & evidence
-      ▼
-[ Probability Estimator ] ── Contextual Calibration
-      │                      Adjusts baseline probabilities based on AI confidence, customer history, and retry counts
-      ▼
-[ Strategy Agent ]        ── Action Selection Engine
-      │                      Calculates Expected Net Value (ENV = P(success) * Amount - Cost)
-      ▼
-[ Execution Agent ]       ── Razorpay API Integration
-      │                      Issues test-mode Payment Links, respects API rate limits
-      ▼
-[ Persistence ]           ── PostgreSQL (Prisma)
-      │                      Idempotent audit trail & execution logs
-      ▼
-[ Webhook Listener ]      ── Validates signatures & updates recovery status asynchronously
+```mermaid
+graph TD
+    %% Styling
+    classDef external fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef agent fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000;
+    classDef core fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000;
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+    classDef ui fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
+
+    %% External Systems
+    subgraph External["External Systems (Razorpay)"]
+        W[Razorpay Webhooks<br/>'payment.failed']:::external
+        PG[Razorpay Payment Links API]:::external
+    end
+
+    %% Agent Pipeline
+    subgraph Pipeline["Autonomous Agent Pipeline"]
+        direction TB
+        C[1. Classifier Agent<br/>Gemini 2.5 Flash]:::agent
+        S[2. Strategy & Math Engine<br/>Expected Net Value (ENV)]:::core
+        E[3. Execution Agent<br/>Action Router]:::agent
+    end
+
+    %% State & UI
+    DB[(PostgreSQL Database<br/>Prisma ORM)]:::db
+    UI[React Dashboard<br/>Live Telemetry & Audits]:::ui
+
+    %% Data Flow
+    W -->|Raw Event Trigger| C
+    C -->|Root Cause + Frustration Score| S
+    S -->|Calculated Optimal Action| E
+    E -->|Create Discount/Retry Link| PG
+    
+    C -.->|Log Reasoning| DB
+    S -.->|Log Math Metrics| DB
+    E -.->|Log Outcome State| DB
+    
+    DB <-->|Live Polling| UI
 ```
 
 ## Revenue Integrity

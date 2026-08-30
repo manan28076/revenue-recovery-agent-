@@ -14,15 +14,35 @@ const VALID_ROOT_CAUSES: RootCause[] = [
   "transient_error",
 ];
 
-const SYSTEM_PROMPT = `You are a payment failure diagnosis agent for a fintech revenue recovery system.
+const ROOT_CAUSE_DEFINITIONS: Record<string, string> = {
+  "card_decline": "- card_decline: card was declined by issuer (not fraud, not insufficient funds)",
+  "insufficient_funds": "- insufficient_funds: payment failed specifically due to low balance",
+  "checkout_drop": "- checkout_drop: customer abandoned checkout before completing payment",
+  "mandate_failure": "- mandate_failure: recurring/subscription auto-debit (e-mandate) failed",
+  "receivable_overdue": "- receivable_overdue: a B2B/invoice payment is overdue, not a failed transaction attempt",
+  "unrecoverable_fraud": "- unrecoverable_fraud: fraud was suspected or flagged, this transaction should NOT be retried",
+  "transient_error": "- transient_error: network/gateway/timeout error, likely recoverable on retry",
+};
+
+function buildSystemPrompt(failure_code: string): string {
+  // Dynamic Context Assembly (Payload Pruning)
+  let relevantKeys = Object.keys(ROOT_CAUSE_DEFINITIONS);
+  
+  if (failure_code === "insufficient_funds") {
+    relevantKeys = ["insufficient_funds", "transient_error", "unrecoverable_fraud"];
+  } else if (failure_code === "checkout_abandoned") {
+    relevantKeys = ["checkout_drop", "transient_error"];
+  } else if (failure_code === "invoice_overdue") {
+    relevantKeys = ["receivable_overdue"];
+  } else if (failure_code === "mandate_failed") {
+    relevantKeys = ["mandate_failure", "insufficient_funds", "card_decline", "transient_error"];
+  }
+  
+  const definitions = relevantKeys.map(k => ROOT_CAUSE_DEFINITIONS[k]).join("\n");
+
+  return `You are a payment failure diagnosis agent for a fintech revenue recovery system.
 Given a single payment event and customer context, classify it into EXACTLY ONE root cause from this list:
-- card_decline: card was declined by issuer (not fraud, not insufficient funds)
-- insufficient_funds: payment failed specifically due to low balance
-- checkout_drop: customer abandoned checkout before completing payment
-- mandate_failure: recurring/subscription auto-debit (e-mandate) failed
-- receivable_overdue: a B2B/invoice payment is overdue, not a failed transaction attempt
-- unrecoverable_fraud: fraud was suspected or flagged, this transaction should NOT be retried
-- transient_error: network/gateway/timeout error, likely recoverable on retry
+${definitions}
 
 IMPORTANT CONFIDENCE CALIBRATION INSTRUCTIONS:
 - Do NOT blindly output 0.95 or 1.0 for every event.
@@ -32,7 +52,8 @@ IMPORTANT CONFIDENCE CALIBRATION INSTRUCTIONS:
 - You must also output a \`frustration_score\` (0.0 to 1.0). 1.0 means the customer is highly likely to churn based on the context (e.g. lots of failed attempts, card declined). 0.0 means they are likely a loyal customer who will easily retry.
 
 Respond ONLY with valid JSON, no markdown fences, no preamble, matching this structure exactly:
-{"root_cause": "<one of the values above>", "confidence": <0.0-1.0>, "frustration_score": <0.0-1.0>, "reasoning": "<one sentence>", "evidence": "<point out specific fields that led to this>", "alternative_explanation": "<what else it could be, if confidence is low>"}`;;
+{"root_cause": "<one of the values above>", "confidence": <0.0-1.0>, "frustration_score": <0.0-1.0>, "reasoning": "<one sentence>", "evidence": "<point out specific fields that led to this>", "alternative_explanation": "<what else it could be, if confidence is low>"}`;
+};
 
 function buildEventPrompt(event: PaymentEvent): string {
   return `Payment event:
@@ -152,7 +173,7 @@ export async function classifyEvent(
     const startTime = performance.now();
     const result = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: `${SYSTEM_PROMPT}\n\n${buildEventPrompt(event)}`,
+      contents: `${buildSystemPrompt(event.failure_code)}\n\n${buildEventPrompt(event)}`,
     });
     const endTime = performance.now();
     const latencyMs = Math.round(endTime - startTime);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { SummaryCards } from "./components/SummaryCards";
 import { RealitySplit } from "./components/RealitySplit";
 import { BaselineEval } from "./components/BaselineEval";
+import { MonteCarloResults } from "./components/MonteCarloResults";
 import { OutcomeChart, RootCauseChart, ActionChart } from "./components/Charts";
 import { AuditLogTable } from "./components/AuditLogTable";
 import { AskPanel } from "./components/AskPanel";
@@ -92,6 +93,7 @@ export default function App() {
                 <ActionChart data={report.action_breakdown} />
               </div>
               <BaselineEval />
+              <MonteCarloResults />
             </>
           )}
 

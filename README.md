@@ -36,42 +36,67 @@ The pipeline is entirely decoupled, bounded, and auditable.
 
 ```mermaid
 graph TD
-    %% Styling
-    classDef external fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
-    classDef agent fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000;
-    classDef core fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000;
-    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
-    classDef ui fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
+    %% Advanced Styling
+    classDef external fill:#f8fafc,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#0f172a;
+    classDef agent fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef math fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    classDef db fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef ui fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#0f172a;
+    classDef guard fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#0f172a;
 
-    %% External Systems
-    subgraph External["External Systems (Razorpay)"]
-        W["Razorpay Webhooks<br/>'payment.failed'"]:::external
-        PG["Razorpay Payment Links API"]:::external
+    %% 1. Ingestion
+    subgraph Ingestion["1. Event Ingestion"]
+        W["Razorpay Webhook Listener<br/>Event: 'payment.failed'"]:::external
+        Signature["Cryptographic Signature Validation"]:::guard
+        W --> Signature
     end
 
-    %% Agent Pipeline
-    subgraph Pipeline["Autonomous Agent Pipeline"]
+    %% 2. Autonomous Pipeline
+    subgraph Pipeline["2. Autonomous Multi-Agent Pipeline"]
         direction TB
-        C["1. Classifier Agent<br/>Gemini 2.5 Flash"]:::agent
-        S["2. Strategy & Math Engine<br/>Expected Net Value (ENV)"]:::core
-        E["3. Execution Agent<br/>Action Router"]:::agent
+        
+        subgraph Semantic["AI Diagnosis Layer"]
+            C["Classifier Agent<br/>(Gemini 2.5 Flash)"]:::agent
+            C_Fallback["Deterministic Heuristic Fallback<br/>(For API Rate Limits)"]:::agent
+            C -.->|"Fallback if failed"| C_Fallback
+        end
+        
+        subgraph Modeling["Probabilistic Strategy Engine"]
+            S["Expected Net Value (ENV) Calculator<br/>Math: P(success) * Amount - Cost"]:::math
+            Sentiment["Dynamic Frustration Penalty<br/>(Subtracts up to 15% from P)"]:::math
+            S <-->|"Inject AI Sentiment"| Sentiment
+        end
+        
+        subgraph Routing["Execution & Routing Layer"]
+            E["Execution Agent<br/>(Policy Router)"]:::agent
+            Idempotency["Idempotency Guard<br/>(Prevents Duplicate Actions)"]:::guard
+            E --> Idempotency
+        end
     end
 
-    %% State & UI
-    DB[("PostgreSQL Database<br/>Prisma ORM")]:::db
-    UI["React Dashboard<br/>Live Telemetry & Audits"]:::ui
+    %% 3. Persistence & Telemetry
+    subgraph Infra["3. Persistence & Telemetry"]
+        DB[("PostgreSQL Database<br/>(Prisma ORM)")]:::db
+        UI["React Dashboard<br/>(Live 5-Second Polling)"]:::ui
+    end
 
-    %% Data Flow
-    W -->|Raw Event Trigger| C
-    C -->|Root Cause + Frustration Score| S
-    S -->|Calculated Optimal Action| E
-    E -->|Create Discount/Retry Link| PG
+    %% 4. Downstream Actions
+    subgraph Downstream["4. Downstream Integrations"]
+        PG["Razorpay Payment Links API<br/>(Test Mode Sandbox)"]:::external
+    end
+
+    %% Core Data Flow
+    Signature -->|"Validated Payload"| Semantic
+    Semantic -->|"(1) Root Cause<br/>(2) Frustration Score"| Modeling
+    Modeling -->|"Optimal Action<br/>(Must pass ENV threshold)"| Routing
+    Idempotency -->|"Create Action"| PG
     
-    C -.->|Log Reasoning| DB
-    S -.->|Log Math Metrics| DB
-    E -.->|Log Outcome State| DB
+    %% Audit Logging Flow
+    Semantic -.->|"Audit: Reasoning"| DB
+    Modeling -.->|"Audit: Calculation Math"| DB
+    Routing -.->|"Audit: State Mutation"| DB
     
-    DB <-->|Live Polling| UI
+    DB <-->|"Live Telemetry Stream"| UI
 ```
 
 ## Revenue Integrity

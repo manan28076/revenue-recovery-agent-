@@ -206,4 +206,64 @@ describe("strategyAgent stopping rules", () => {
       classifierModule.INTERVENTION_COST_PAISE.retry_payment = originalRetryCost;
     }
   });
+
+  test("daily intervention spend cap accumulates and then resets on a new day", () => {
+    const OriginalDate = global.Date;
+    const mockDateStr1 = "2023-10-01T12:00:00Z";
+    const mockDateStr2 = "2023-10-02T12:00:00Z";
+    
+    let currentDateStr = mockDateStr1;
+    
+    // Mock global Date
+    class MockDate extends OriginalDate {
+      constructor() {
+        super(currentDateStr);
+      }
+      static now() {
+        return new OriginalDate(currentDateStr).getTime();
+      }
+      toISOString() {
+        return new OriginalDate(currentDateStr).toISOString();
+      }
+    }
+    
+    // @ts-ignore
+    global.Date = MockDate;
+
+    try {
+      const classifierModule = require("../classifierAgent");
+      const originalRetryCost = classifierModule.INTERVENTION_COST_PAISE.retry_payment;
+      const originalNudgeCost = classifierModule.INTERVENTION_COST_PAISE.send_nudge;
+      const originalDiscountCost = classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount;
+      
+      classifierModule.INTERVENTION_COST_PAISE.retry_payment = 100000; 
+      classifierModule.INTERVENTION_COST_PAISE.send_nudge = 100000; 
+      classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount = 100000; 
+
+      const event = makeEvent({ amount: 9900000, failure_code: "card_declined" });
+      const classification = makeClassification({ root_cause: "card_decline", diagnosis_confidence: 1.0 });
+
+      // Call it on Day 1
+      const decisions = decideBatch([event], [classification]);
+      
+      const strategyModule = require("../strategyAgent");
+      
+      const statsDay1 = strategyModule.getBudgetStats();
+      assert.ok(statsDay1.used >= 100000, `Expected >= 100000, got ${statsDay1.used}. Decision was: ${decisions[0].action}`);
+
+      // Change date to Day 2
+      currentDateStr = mockDateStr2;
+      
+      // Call it on Day 2
+      const statsDay2 = strategyModule.getBudgetStats();
+      assert.equal(statsDay2.used, 0); // Should reset to 0
+
+      // Restore cost
+      classifierModule.INTERVENTION_COST_PAISE.retry_payment = originalRetryCost;
+      classifierModule.INTERVENTION_COST_PAISE.send_nudge = originalNudgeCost;
+      classifierModule.INTERVENTION_COST_PAISE.nudge_with_discount = originalDiscountCost;
+    } finally {
+      global.Date = OriginalDate;
+    }
+  });
 });

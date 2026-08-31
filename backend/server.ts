@@ -44,9 +44,24 @@ const app = express();
 // In production, this would be locked down to specific trusted origins (e.g., the exact frontend domain).
 app.use(cors());
 
+let authWarningLogged = false;
+
 // Auth middleware for mutating/admin endpoints
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  // DEMO FIX: Bypassing auth for the dashboard so Vercel frontend works without VITE_ADMIN_API_SECRET
+  const secret = process.env.ADMIN_API_SECRET;
+  
+  if (!secret) {
+    if (!authWarningLogged) {
+      console.warn("WARN: ADMIN_API_SECRET is not set. Auth is bypassed. Do not do this in production!");
+      authWarningLogged = true;
+    }
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || authHeader !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: "Unauthorized: Invalid or missing Bearer token" });
+  }
   next();
 }
 

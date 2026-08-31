@@ -101,8 +101,19 @@ function decideAction(
 }
 
 let accumulatedSpend = 0;
+// NOTE: In a multi-instance/serverless deployment, this cap is per-instance, not global. Persisting this to Postgres would be the proper production fix.
+let accumulatedSpendDate = new Date().toISOString().slice(0, 10);
+
+function checkAndResetCap() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (today !== accumulatedSpendDate) {
+    accumulatedSpend = 0;
+    accumulatedSpendDate = today;
+  }
+}
 
 export function getBudgetStats() {
+  checkAndResetCap();
   return { used: accumulatedSpend, limit: MAX_DAILY_INTERVENTION_SPEND };
 }
 
@@ -110,6 +121,7 @@ export function decideBatch(
   events: PaymentEvent[],
   classifications: ClassificationResult[]
 ): StrategyDecision[] {
+  checkAndResetCap();
   const classByTxn = new Map(classifications.map((c) => [c.transaction_id, c]));
 
   return events.map((event) => {

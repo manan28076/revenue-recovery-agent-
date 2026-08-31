@@ -664,6 +664,18 @@ app.get("/api/eval-metrics", async (_req, res) => {
   }
 });
 
+app.get("/api/baseline-report", async (_req, res) => {
+  try {
+    const { readFileSync } = await import("fs");
+    const { join } = await import("path");
+    const path = join(__dirname, "..", "data", "baseline_report.json");
+    const raw = readFileSync(path, "utf-8");
+    res.json(JSON.parse(raw));
+  } catch (err) {
+    res.status(404).json({ error: "No baseline report yet - run `npm run eval:baseline` first." });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 if (require.main === module) {
   app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));

@@ -2,6 +2,7 @@ services:
   - type: web
     name: revenue-recovery-backend
     env: node
+    plan: free
     buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npm run api
     envVars:

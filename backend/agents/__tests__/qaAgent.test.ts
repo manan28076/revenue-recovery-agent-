@@ -22,7 +22,7 @@ describe("qaAgent verified aggregates", () => {
     const result = computeVerifiedAggregates(entries);
 
     assert.equal(result.count, 12);
-    assert.equal(result.amount_at_risk, 1200000);
+    assert.equal(result.amount_at_risk, 12000); // 12 * (100000 / 100)
   });
 
   test("confirmed_recovered only counts entries actually outcome === recovered", () => {
@@ -34,8 +34,8 @@ describe("qaAgent verified aggregates", () => {
     ];
     const result = computeVerifiedAggregates(entries);
 
-    assert.equal(result.confirmed_recovered, 80000);
-    assert.equal(result.pending_predicted, 20000);
+    assert.equal(result.confirmed_recovered, 800); // 80000 / 100
+    assert.equal(result.pending_predicted, 200); // 20000 / 100
   });
 
   test("by_outcome breakdown counts every entry exactly once", () => {
@@ -79,9 +79,9 @@ describe("qaAgent verified aggregates", () => {
     const result = computeVerifiedAggregates(entries);
 
     assert.equal(result.count, 127);
-    assert.equal(result.amount_at_risk, 127 * 50000);
+    assert.equal(result.amount_at_risk, (127 * 50000) / 100);
     const expectedRecoveredCount = entries.filter((e) => e.outcome === "recovered").length;
     assert.equal(result.by_outcome["recovered"], expectedRecoveredCount);
-    assert.equal(result.confirmed_recovered, expectedRecoveredCount * 10000);
+    assert.equal(result.confirmed_recovered, (expectedRecoveredCount * 10000) / 100);
   });
 });

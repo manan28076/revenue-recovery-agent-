@@ -3,7 +3,7 @@ services:
     name: revenue-recovery-backend
     env: node
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run db:load && npm run build
     startCommand: npm run api
     envVars:
       - key: DATABASE_URL

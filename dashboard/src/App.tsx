@@ -31,8 +31,8 @@ export default function App() {
   const fetchData = async () => {
     try {
       const [reportRes, logsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/report`),
-        fetch(`${API_BASE}/api/audit-log`),
+        fetch(`${API_BASE}/api/report`, { cache: "no-store" }),
+        fetch(`${API_BASE}/api/audit-log`, { cache: "no-store" }),
       ]);
       if (!reportRes.ok || !logsRes.ok) throw new Error("API request failed");
       setReport(await reportRes.json());

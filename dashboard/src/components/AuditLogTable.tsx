@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { AuditLogRow } from "../types";
 import { humanizeRootCause, humanizeAction, humanizeOutcome, humanizeRecoverySource } from "../labels";
 
@@ -32,7 +32,7 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
   const [history, setHistory] = useState<OverrideAuditEntry[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/override-history/${row.transactionId}`)
+    fetch(`${API_BASE}/api/override-history/${row.transactionId}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then(setHistory)
       .catch(() => setHistory([]));
@@ -46,7 +46,7 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET}`
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
         },
         body: JSON.stringify({ transactionId: row.transactionId, eventType }),
       });
@@ -76,7 +76,7 @@ function DetailRow({ row, onRefresh }: { row: AuditLogRow; onRefresh?: () => voi
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET}`
+          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
         },
         body: JSON.stringify({ transactionId: row.transactionId, overrideAction, reason: overrideReason.trim() }),
       });
@@ -292,9 +292,8 @@ export function AuditLogTable({ rows, onRefresh }: { rows: AuditLogRow[]; onRefr
           {rows.map((r) => {
             const isOpen = expanded === r.transactionId;
             return (
-              <>
+              <React.Fragment key={r.transactionId}>
                 <tr
-                  key={r.transactionId}
                   className="audit-row"
                   onClick={() => setExpanded(isOpen ? null : r.transactionId)}
                 >
@@ -364,7 +363,7 @@ export function AuditLogTable({ rows, onRefresh }: { rows: AuditLogRow[]; onRefr
                   </td>
                 </tr>
                 {isOpen && <DetailRow key={`${r.transactionId}-detail`} row={r} onRefresh={onRefresh} />}
-              </>
+              </React.Fragment>
             );
           })}
         </tbody>

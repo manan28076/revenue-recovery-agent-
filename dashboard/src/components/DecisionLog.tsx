@@ -10,8 +10,8 @@ export function DecisionLog() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/audit-log")
-      .then((r) => r.json())
+    fetch(`${API_BASE}/api/audit-log`)
+      .then((res) => res.json())
       .then((data) => {
         setLogs(data);
         setLoading(false);

@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { prisma } from "../db/prismaClient";
 import { sanitizeFilter, SafeFilter } from "./qaFilterGuard";
 import { computeVerifiedAggregates, templatedFallback } from "./qaAggregates";
+import { recordCacheHit, recordCacheMiss } from "./cacheStats";
 
 const MODEL_NAME = "gemini-2.5-flash";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -82,10 +83,13 @@ export async function askQuestion(question: string): Promise<QaResult> {
       const similarity = cosineSimilarity(questionEmbedding, entry.embedding);
       if (similarity >= SIMILARITY_THRESHOLD) {
         console.log(`[Semantic Cache Hit] Similarity: ${similarity.toFixed(4)} matched: "${entry.question}"`);
+        recordCacheHit();
         return entry.result;
       }
     }
   }
+
+  recordCacheMiss();
 
   let filter: SafeFilter = {};
   let extractionSucceeded = false;

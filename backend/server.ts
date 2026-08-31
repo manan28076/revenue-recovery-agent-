@@ -5,6 +5,7 @@ import Razorpay from "razorpay";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./db/prismaClient";
 import { askQuestion } from "./agents/qaAgent";
+import { getCacheStats } from "./agents/cacheStats";
 
 
 const RECOGNIZED_WEBHOOK_EVENTS = new Set([
@@ -243,6 +244,10 @@ app.post("/api/ask", async (req, res) => {
     console.error("Q&A endpoint failed:", err);
     res.status(500).json({ error: "failed to answer question" });
   }
+});
+
+app.get("/api/cache-stats", (_req, res) => {
+  res.json(getCacheStats());
 });
 
 // Interactive Demo Endpoint: Simulate Payment Failure & Run Pipeline

@@ -4,10 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 ## Contents
-- [Demo](#-safety-first-evaluation-results)
+- [Demo](#demo)
 - [Mathematical Proof of Value](#mathematical-proof-of-value-monte-carlo-simulation)
 - [System Architecture](#system-architecture)
+- [Dashboard Features](#dashboard-features)
 - [Revenue Integrity](#revenue-integrity)
+- [Security & Access Control](#security--access-control)
+- [Resilience & Error Handling](#resilience--error-handling)
 - [AI Evaluation](#ai-evaluation)
 - [Economic Decisioning](#economic-decisioning)
 - [Core Engineering Decisions](#core-engineering-decisions)
@@ -17,12 +20,9 @@
 - [Tech Stack](#tech-stack)
 - [Author](#author)
 
-
-
+## Demo
 
 https://github.com/user-attachments/assets/90a2f1c6-bf00-4db5-95d2-8c9ab60a1cf0
-
-
 
 > **Safety First Evaluation Results:** On a 350-event evaluation set (105 held-out events), the agent successfully **prevented 39 unsafe retries** (zero unsafe interventions) and properly escalated 46 high-risk cases to human agents. While a "blind retry" approach recovers slightly more top-line revenue, it does so by blindly retrying known fraud and severe payment declines. The AI agent trades off a calculated 20.0% in gross revenue to guarantee zero unsafe interventions, demonstrating strict adherence to risk management and economic stopping rules with a net recovered value of **₹7,27,430.06**.
 
@@ -65,6 +65,8 @@ Discounts Dynamically Issued: 4,232
 >>> NET REVENUE LIFT: +16.16% <<<
 ```
 By accurately predicting when to issue a 15% discount versus a direct retry based on AI Frustration Scores and Expected Net Value (ENV) math, **the agent recovers +16.16% more gross revenue** while burning significantly less integration API cost on dead-end retries.
+
+> **Independent Evaluation Engine:** To ensure these results are mathematically sound and not a circular marketing claim, the Monte Carlo evaluator employs independent synthetic seeds and probability assumptions that are completely decoupled from the agent's baseline models. The agent was not tuned on the same assumptions it was tested against.
 
 ### Sensitivity Analysis
 
@@ -139,11 +141,35 @@ graph TD
     DB <-->|"Live Telemetry Stream"| UI
 ```
 
+## Dashboard Features
+
+The custom React/Vite dashboard provides complete visibility and control over the autonomous recovery process.
+
+- **Reality-Split View:** The dashboard visually bifurcates actual confirmed revenue ("Live / Verified" Razorpay webhooks) from theoretical or pending revenue, ensuring strict financial integrity for merchant reporting.
+- **Live Circuit Breaker Badge:** The top-level summary cards display real-time tracking of the agent's intervention API budget. You can watch the agent dynamically back off and route to human escalation if the daily spend cap is breached.
+- **Semantic QA Agent:** The dashboard includes a natural language interface querying the database. Behind the scenes, it utilizes an ultra-fast semantic cache (via Google Embedding Models), ensuring repeated questions return answers in `<100ms` with `0` additional LLM tokens burned.
+
+> **[TODO: Insert Dashboard Screenshots Here]**
+
 ## Revenue Integrity
 
 1. Verified recovery comes only from Razorpay-confirmed payment events.
 2. Simulator results are separated from verified revenue and explicitly labeled.
 3. Recovery potential is an estimate, not actual recovered money.
+
+## Security & Access Control
+
+To ensure production readiness, the system integrates several critical security measures:
+- **Webhook Cryptographic Validation:** All incoming Razorpay webhooks are verified using `x-razorpay-signature` and the raw request body to prevent payload spoofing.
+- **API Rate Limiting:** The natural language QA agent endpoint (`/api/ask`) enforces strict IP-based rate limiting to protect the Gemini API budget from abuse.
+- **Secured Administration:** All state-mutating endpoints, manual overrides, and demo simulators are protected by strict Bearer Token Auth using `ADMIN_API_SECRET`.
+- **Environment Isolation:** Secrets (`GEMINI_API_KEY`, Razorpay keys) are strictly managed via `.env` files and never leaked to the client dashboard.
+
+## Resilience & Error Handling
+
+- **Idempotency Guard:** Before executing any action against Razorpay, the pipeline queries PostgreSQL to ensure duplicate payment links are mathematically impossible, avoiding double-charging customers.
+- **Webhook Reconciliation Job:** If the Razorpay webhook system drops an event or goes down, the system does not leave links permanently stuck in `pending`. A dedicated cron job (`backend/scripts/reconciliationCron.ts`) sweeps the database for stale pending links (>3 days old) and queries the Razorpay API directly to reconcile the true state.
+- **Resilient Fallbacks:** The classifier handles upstream LLM API rate limits (HTTP 429) via exponential backoff and gracefully degrades to a deterministic heuristic model if the LLM becomes entirely unavailable.
 
 ## AI Evaluation
 
@@ -227,7 +253,12 @@ npm run run-pipeline       # Computes strategy, issues Payment Links, and genera
 npm run db:load            # Persists the audit log to PostgreSQL
 ```
 
-### Sensitivity Analysis & Confidence Outcome
+### Testing & Evaluation
+
+Execute the deterministic unit test suite verifying economic logic and idempotency guards:
+```bash
+npm test
+```
 
 Prove the mathematical robustness of the agent's strategy against pessimistic shifts in recovery probabilities:
 ```bash

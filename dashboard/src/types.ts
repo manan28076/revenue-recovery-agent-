@@ -31,11 +31,21 @@ export interface AuditLogRow {
   paymentEvent: PaymentEventRow;
 }
 
+export interface EvalMetrics {
+  recovery_rate_percent: number;
+  total_failed_transaction_value: number;
+  total_recovered_value: number;
+  recovery_uplift_vs_baseline_percent: number;
+  expected_revenue_recovered: number;
+  average_recovery_value_per_transaction: number;
+  blocked_risky_fraud_actions: number;
+  unnecessary_retry_rate: number;
+}
+
 export interface ReportData {
   total_events: number;
   total_amount_at_risk: number;
   total_amount_actions_initiated: number;
-  // Full amount currently awaiting a real confirmation (outcome === "pending").
   total_amount_pending_confirmation: number;
   total_amount_confirmed_recovered: number;
   total_verified_revenue_recovered: number;
@@ -50,9 +60,11 @@ export interface ReportData {
   outcome_breakdown: Record<string, number>;
   root_cause_breakdown: Record<string, number>;
   action_breakdown: Record<string, number>;
+  action_recovered_breakdown: Record<string, number>;
   real_object_count: number;
   synthetic_event_count: number;
   confirmed_payment_count: number;
+  eval_metrics?: EvalMetrics;
 }
 
 export interface PolicyResult {

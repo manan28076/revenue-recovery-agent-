@@ -7,6 +7,9 @@ import { AuditLogTable } from "./components/AuditLogTable";
 import { AskPanel } from "./components/AskPanel";
 import { Tabs } from "./components/Tabs";
 import { DemoSimulator } from "./components/DemoSimulator";
+import { ActionBreakdown } from "./components/ActionBreakdown";
+import { DecisionLog } from "./components/DecisionLog";
+import { FlowIndicator } from "./components/FlowIndicator";
 import type { ReportData, AuditLogRow } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
@@ -79,6 +82,7 @@ export default function App() {
 
       {report && (
         <>
+          <FlowIndicator />
           <RealitySplit report={report} />
           <DemoSimulator onRefresh={fetchData} onComplete={() => setActiveTab("audit")} />
           <SummaryCards report={report} />
@@ -91,6 +95,12 @@ export default function App() {
                 <RootCauseChart data={report.root_cause_breakdown} />
                 <ActionChart data={report.action_breakdown} />
               </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginTop: "2rem" }}>
+                <ActionBreakdown report={report} />
+                <DecisionLog />
+              </div>
+
               <BaselineEval />
             </>
           )}

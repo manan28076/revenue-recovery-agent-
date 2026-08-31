@@ -20,6 +20,7 @@
     "eval:baseline": "ts-node backend/scripts/runBaselineEval.ts",
     "eval:sensitivity": "ts-node backend/scripts/runSensitivityAnalysis.ts",
     "evaluate:classifier": "ts-node backend/evaluation/evaluateClassifier.ts",
+    "evaluate": "ts-node evaluate.ts",
     "generate:dataset": "ts-node backend/evaluation/generateDataset.ts",
     "build": "tsc",
     "eval:confidence-outcome": "ts-node backend/scripts/evalCalibration.ts",

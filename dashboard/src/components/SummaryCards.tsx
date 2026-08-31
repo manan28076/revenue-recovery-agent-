@@ -29,41 +29,47 @@ function TallyCard({
 
 export function SummaryCards({ report }: { report: ReportData }) {
   const cards = [
-    { label: "Total events", target: report.total_events, format: (n: number) => String(n) },
     {
-      label: "Revenue at risk",
+      label: "Revenue at Risk",
       target: report.total_amount_at_risk,
       format: (n: number) => formatInr(n),
+      hint: "Total value of all failed payments.",
     },
     {
-      label: "Verified Revenue Recovered",
+      label: "Revenue Recovered",
       target: report.total_verified_revenue_recovered,
       format: (n: number) => formatInr(n),
-      hint: `Real, confirmed money only - webhook-verified payments or explicit merchant confirmation.`,
+      hint: "Real, confirmed money recovered.",
     },
     {
-      label: "Total Recovery Potential",
-      target: report.total_expected_recovery_potential,
-      format: (n: number) => formatInr(n),
-      hint: "Total expected net value of eligible recovery opportunities.",
+      label: "Recovery Rate",
+      target: (report.total_verified_revenue_recovered / (report.total_amount_at_risk || 1)) * 100,
+      format: (n: number) => `${n.toFixed(1)}%`,
+      hint: "Percentage of at-risk revenue successfully recovered.",
     },
     {
-      label: "Estimated Recovery Potential",
-      target: report.total_amount_predicted_recovered,
-      format: (n: number) => formatInr(n),
-      hint: "Probability-weighted expected value of pending cases.",
+      label: "Recovery Uplift",
+      target: report.eval_metrics?.recovery_uplift_vs_baseline_percent ?? 0,
+      format: (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`,
+      hint: "Net uplift compared to a blind retry baseline, strictly evaluated on held-out data.",
     },
-    {
-      label: "Simulated Recovery",
-      target: report.total_simulated_recovery,
-      format: (n: number) => formatInr(n),
-      hint: "Demo simulator successes. NOT verified revenue.",
+    { 
+      label: "Failed Transactions", 
+      target: report.total_events, 
+      format: (n: number) => String(n),
+      hint: "Total count of failed payment events processed."
     },
-    {
-      label: "Recovery actions initiated",
-      target: report.total_amount_actions_initiated,
-      format: (n: number) => formatInr(n),
-      hint: "Amount actively pursued via retry, nudge, or mandate reschedule.",
+    { 
+      label: "Recovered Transactions", 
+      target: report.outcome_breakdown["recovered"] || 0, 
+      format: (n: number) => String(n),
+      hint: "Count of successfully recovered transactions."
+    },
+    { 
+      label: "Blocked Risky Transactions", 
+      target: (report.eval_metrics?.blocked_risky_fraud_actions ?? 0) || (report.action_breakdown["escalate_human"] || 0), 
+      format: (n: number) => String(n),
+      hint: "Number of unsafe, fraudulent, or economically unviable retries prevented."
     },
     {
       label: "Intervention Budget Used",

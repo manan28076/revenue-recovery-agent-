@@ -5,12 +5,12 @@ import { DemoSimulator } from '../DemoSimulator';
 
 describe('DemoSimulator', () => {
   beforeEach(() => {
-    global.fetch = vi.fn();
+    window.fetch = vi.fn();
   });
 
   it('calls the expected API endpoint with the expected payload when simulate is clicked', async () => {
     const mockOnRefresh = vi.fn();
-    (global.fetch as any).mockResolvedValueOnce({
+    (window.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         transactionId: 'test_txn',
@@ -29,7 +29,7 @@ describe('DemoSimulator', () => {
     const runButton = screen.getByRole('button', { name: /Run Live Recovery Simulation/i });
     fireEvent.click(runButton);
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(window.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/simulate-failure'),
       expect.objectContaining({
         method: 'POST',

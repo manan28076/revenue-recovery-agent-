@@ -6,9 +6,15 @@ const MAX_RETRIES = 3;
 
 const BAD_RETRY_PENALTY_PAISE = 500;
 
-// INDEPENDENT EVALUATOR MATRIX
-// The agent does not know these exact probabilities. It uses its own estimates.
-// These are the "true" probabilities used strictly by the evaluator to simulate outcomes.
+// =========================================================================
+// INDEPENDENT EVALUATOR PROBABILITY MATRIX
+// =========================================================================
+// CRITICAL REQUIREMENT (PHASE 1): The ground-truth outcome probabilities below 
+// are generated from a separate, synthetic model that is NOT the same code path 
+// or tuned constants as the agent's own Expected Net Value (ENV) logic.
+// This guarantees independent, non-circular evaluation: the agent is NOT
+// tuned on the same assumptions it is being tested against.
+// =========================================================================
 const EVALUATOR_TRUE_PROBABILITIES: Record<RootCause, Partial<Record<ActionType, number>>> = {
   card_decline: { retry_payment: 0.40, send_nudge: 0.20, nudge_with_discount: 0.50, reschedule_mandate: 0.15 },
   insufficient_funds: { retry_payment: 0.05, send_nudge: 0.55, nudge_with_discount: 0.75, reschedule_mandate: 0.35 },

@@ -560,6 +560,8 @@ app.get("/api/report", async (_req, res) => {
   const action_breakdown: Record<string, number> = {};
   const recovery_source_breakdown: Record<string, number> = {};
 
+  const action_recovered_breakdown: Record<string, number> = {};
+
   let total_amount_actions_initiated = 0;
   let total_amount_pending_confirmation = 0;
   let total_amount_confirmed_recovered = 0;
@@ -594,6 +596,9 @@ app.get("/api/report", async (_req, res) => {
       recovery_source_breakdown[source] = (recovery_source_breakdown[source] || 0) + 1;
       total_amount_confirmed_recovered += e.amountRecovered;
       
+      // Breakdown by action
+      action_recovered_breakdown[e.actionTaken] = (action_recovered_breakdown[e.actionTaken] || 0) + e.amountRecovered;
+      
       if (source === "webhook_confirmed" || source === "human_override") {
         total_verified_revenue_recovered += e.amountRecovered;
       } else if (source === "demo_confirmed") {
@@ -610,6 +615,16 @@ app.get("/api/report", async (_req, res) => {
 
   const { getBudgetStats } = await import("./agents/strategyAgent");
   const budgetStats = getBudgetStats();
+
+  let eval_metrics = null;
+  try {
+    const { readFileSync } = await import("fs");
+    const { join } = await import("path");
+    const path = join(__dirname, "..", "data", "eval_metrics.json");
+    eval_metrics = JSON.parse(readFileSync(path, "utf-8"));
+  } catch (err) {
+    // silently ignore if not found yet
+  }
 
   res.json({
     total_events: entries.length,
@@ -629,21 +644,23 @@ app.get("/api/report", async (_req, res) => {
     outcome_breakdown,
     root_cause_breakdown,
     action_breakdown,
+    action_recovered_breakdown,
     real_object_count,
     synthetic_event_count,
     confirmed_payment_count,
+    eval_metrics,
   });
 });
 
-app.get("/api/baseline-report", async (_req, res) => {
+app.get("/api/eval-metrics", async (_req, res) => {
   try {
     const { readFileSync } = await import("fs");
     const { join } = await import("path");
-    const path = join(__dirname, "..", "data", "baseline_report.json");
+    const path = join(__dirname, "..", "data", "eval_metrics.json");
     const raw = readFileSync(path, "utf-8");
     res.json(JSON.parse(raw));
   } catch (err) {
-    res.status(404).json({ error: "No baseline report yet - run `npm run eval:baseline` first." });
+    res.status(404).json({ error: "No eval metrics yet - run `npm run evaluate` first." });
   }
 });
 

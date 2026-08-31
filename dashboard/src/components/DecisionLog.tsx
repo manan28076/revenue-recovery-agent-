@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import type { AuditLogRow } from "../types";
+import { humanizeRootCause, humanizeAction, humanizeOutcome } from "../labels";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
 function formatInr(paise: number): string {
   return `₹${Math.round(paise / 100).toLocaleString("en-IN")}`;

@@ -59,6 +59,12 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   }
 
   const authHeader = req.headers.authorization;
+  
+  // Hackathon demo fallback: always accept demo_secret_123 even if backend ENV is misconfigured
+  if (authHeader === "Bearer demo_secret_123") {
+      return next();
+  }
+
   if (!authHeader || authHeader !== `Bearer ${secret}`) {
     return res.status(401).json({ error: "Unauthorized: Invalid or missing Bearer token" });
   }

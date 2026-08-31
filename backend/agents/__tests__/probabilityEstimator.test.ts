@@ -18,7 +18,7 @@ describe('probabilityEstimator', () => {
       is_subscription: false,
       is_real_razorpay_object: false,
       timestamp: new Date().toISOString()
-    } as PaymentEvent;
+    } as unknown as PaymentEvent;
 
     const classificationNormal = {
       transaction_id: 'txn_test1',
@@ -27,7 +27,7 @@ describe('probabilityEstimator', () => {
       frustration_score: 0.1, // low frustration
       reasoning: 'test',
       source: 'gemini'
-    } as ClassificationResult;
+    } as unknown as ClassificationResult;
 
     const classificationFrustrated = {
       ...classificationNormal,
@@ -57,7 +57,7 @@ describe('probabilityEstimator', () => {
       is_subscription: false,
       is_real_razorpay_object: false,
       timestamp: new Date().toISOString()
-    } as PaymentEvent;
+    } as unknown as PaymentEvent;
 
     const classificationHighConf = {
       transaction_id: 'txn_test2',
@@ -66,7 +66,7 @@ describe('probabilityEstimator', () => {
       frustration_score: 0.5,
       reasoning: 'test',
       source: 'gemini'
-    } as ClassificationResult;
+    } as unknown as ClassificationResult;
 
     const classificationLowConf = {
       ...classificationHighConf,

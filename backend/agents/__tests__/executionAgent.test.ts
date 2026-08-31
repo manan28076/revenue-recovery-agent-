@@ -18,14 +18,14 @@ describe('executionAgent', () => {
       is_subscription: false,
       is_real_razorpay_object: false,
       timestamp: new Date().toISOString()
-    } as PaymentEvent;
+    } as unknown as unknown as PaymentEvent;
 
     const decision = {
       transaction_id: 'txn_idem_1',
       action: 'nudge_with_discount',
       reasoning: 'test',
       expected_net_value: 500
-    } as StrategyDecision;
+    } as unknown as unknown as StrategyDecision;
 
     const existingLink = {
       recoveryLinkId: 'plink_existing',
@@ -55,14 +55,14 @@ describe('executionAgent', () => {
       is_subscription: false,
       is_real_razorpay_object: false,
       timestamp: new Date().toISOString()
-    } as PaymentEvent;
+    } as unknown as PaymentEvent;
 
     const decision = {
       transaction_id: 'txn_idem_2',
       action: 'escalate_human',
       reasoning: 'fraud suspected',
       expected_net_value: -100
-    } as StrategyDecision;
+    } as unknown as unknown as StrategyDecision;
 
     const outcome = await executeAction(event, decision, undefined);
 

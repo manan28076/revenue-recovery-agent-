@@ -232,7 +232,7 @@ export async function runFullPipeline() {
     readFileSync(join(dataDir, "classifications.json"), "utf-8")
   );
 
-  const decisions = decideBatch(events, classifications);
+  const decisions = await decideBatch(events, classifications);
   const auditLog = await executeBatch(events, classifications, decisions);
   const report = buildReport(events, auditLog);
 

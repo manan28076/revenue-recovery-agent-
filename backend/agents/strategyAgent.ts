@@ -100,28 +100,28 @@ function decideAction(
   };
 }
 
-let accumulatedSpend = 0;
-// NOTE: In a multi-instance/serverless deployment, this cap is per-instance, not global. Persisting this to Postgres would be the proper production fix.
-let accumulatedSpendDate = new Date().toISOString().slice(0, 10);
+import { prisma } from "../db/prismaClient";
 
-function checkAndResetCap() {
-  const today = new Date().toISOString().slice(0, 10);
-  if (today !== accumulatedSpendDate) {
-    accumulatedSpend = 0;
-    accumulatedSpendDate = today;
-  }
+export async function getBudgetStats() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const result = await prisma.auditLogEntry.aggregate({
+    _sum: { interventionCost: true },
+    where: { createdAt: { gte: today } }
+  });
+
+  const used = result._sum.interventionCost || 0;
+  return { used, limit: MAX_DAILY_INTERVENTION_SPEND };
 }
 
-export function getBudgetStats() {
-  checkAndResetCap();
-  return { used: accumulatedSpend, limit: MAX_DAILY_INTERVENTION_SPEND };
-}
-
-export function decideBatch(
+export async function decideBatch(
   events: PaymentEvent[],
   classifications: ClassificationResult[]
-): StrategyDecision[] {
-  checkAndResetCap();
+): Promise<StrategyDecision[]> {
+  const budget = await getBudgetStats();
+  let currentUsed = budget.used;
+
   const classByTxn = new Map(classifications.map((c) => [c.transaction_id, c]));
 
   return events.map((event) => {
@@ -135,7 +135,7 @@ export function decideBatch(
     }
     const decision = decideAction(event, classification);
 
-    if (decision.intervention_cost && accumulatedSpend + decision.intervention_cost > MAX_DAILY_INTERVENTION_SPEND) {
+    if (decision.intervention_cost && currentUsed + decision.intervention_cost > MAX_DAILY_INTERVENTION_SPEND) {
       return {
         transaction_id: event.transaction_id,
         action: "escalate_human",
@@ -144,7 +144,7 @@ export function decideBatch(
     }
 
     if (decision.intervention_cost) {
-      accumulatedSpend += decision.intervention_cost;
+      currentUsed += decision.intervention_cost;
     }
 
     return decision;

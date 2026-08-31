@@ -313,7 +313,7 @@ app.post("/api/simulate-failure", requireAuth, async (req, res) => {
     };
 
     const classification = await classifyEvent(paymentEvent);
-    const [decision] = decideBatch([paymentEvent], [classification]);
+    const [decision] = await decideBatch([paymentEvent], [classification]);
     const [auditEntry] = await executeBatch([paymentEvent], [classification], [decision]);
 
     await prisma.auditLogEntry.create({
@@ -619,7 +619,7 @@ app.get("/api/report", async (_req, res) => {
   ).length;
 
   const { getBudgetStats } = await import("./agents/strategyAgent");
-  const budgetStats = getBudgetStats();
+  const budgetStats = await getBudgetStats();
 
   let eval_metrics = null;
   try {

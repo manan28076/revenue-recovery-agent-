@@ -16,7 +16,8 @@ describe('executionAgent', () => {
       attempt_count: 1,
       checkout_stage: 'payment',
       is_subscription: false,
-      is_real_razorpay_object: false
+      is_real_razorpay_object: false,
+      timestamp: new Date().toISOString()
     } as PaymentEvent;
 
     const decision = {
@@ -52,7 +53,8 @@ describe('executionAgent', () => {
       attempt_count: 1,
       checkout_stage: 'payment',
       is_subscription: false,
-      is_real_razorpay_object: false
+      is_real_razorpay_object: false,
+      timestamp: new Date().toISOString()
     } as PaymentEvent;
 
     const decision = {

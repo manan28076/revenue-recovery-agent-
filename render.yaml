@@ -23,7 +23,6 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
-
-  - type: psql
-    name: revenue-recovery-db
+databases:
+  - name: revenue-recovery-db
     plan: free

@@ -608,6 +608,9 @@ app.get("/api/report", async (_req, res) => {
     (e) => e.outcome === "recovered" && (e.recoverySource === "webhook_confirmed" || e.recoverySource === "human_override")
   ).length;
 
+  const { getBudgetStats } = await import("./agents/strategyAgent");
+  const budgetStats = getBudgetStats();
+
   res.json({
     total_events: entries.length,
     total_amount_at_risk,
@@ -620,6 +623,8 @@ app.get("/api/report", async (_req, res) => {
     confirmed_recovery_rate: total_amount_at_risk > 0 ? total_amount_confirmed_recovered / total_amount_at_risk : 0,
     total_amount_predicted_recovered,
     total_expected_net_value,
+    intervention_budget_used: budgetStats.used,
+    intervention_budget_limit: budgetStats.limit,
     recovery_source_breakdown,
     outcome_breakdown,
     root_cause_breakdown,

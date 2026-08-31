@@ -44,6 +44,8 @@ export interface ReportData {
   confirmed_recovery_rate: number;
   total_amount_predicted_recovered: number;
   total_expected_net_value: number;
+  intervention_budget_used?: number;
+  intervention_budget_limit?: number;
   recovery_source_breakdown: Record<string, number>;
   outcome_breakdown: Record<string, number>;
   root_cause_breakdown: Record<string, number>;

@@ -100,12 +100,17 @@ function decideAction(
   };
 }
 
+let accumulatedSpend = 0;
+
+export function getBudgetStats() {
+  return { used: accumulatedSpend, limit: MAX_DAILY_INTERVENTION_SPEND };
+}
+
 export function decideBatch(
   events: PaymentEvent[],
   classifications: ClassificationResult[]
 ): StrategyDecision[] {
   const classByTxn = new Map(classifications.map((c) => [c.transaction_id, c]));
-  let accumulatedSpend = 0;
 
   return events.map((event) => {
     const classification = classByTxn.get(event.transaction_id);

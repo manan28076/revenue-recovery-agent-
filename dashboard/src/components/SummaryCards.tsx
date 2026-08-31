@@ -65,6 +65,12 @@ export function SummaryCards({ report }: { report: ReportData }) {
       format: (n: number) => formatInr(n),
       hint: "Amount actively pursued via retry, nudge, or mandate reschedule.",
     },
+    {
+      label: "Intervention Budget Used",
+      target: report.intervention_budget_used || 0,
+      format: (n: number) => `${formatInr(n)} / ${formatInr(report.intervention_budget_limit || 0)}`,
+      hint: "Live circuit breaker for maximum daily spend on automated recovery actions.",
+    },
   ];
 
   return (

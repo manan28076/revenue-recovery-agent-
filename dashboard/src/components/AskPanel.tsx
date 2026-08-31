@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
@@ -20,6 +20,20 @@ export function AskPanel() {
   const [history, setHistory] = useState<QaEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cacheStats, setCacheStats] = useState<{hitRate: number, apiCallsSaved: number} | null>(null);
+
+  async function fetchCacheStats() {
+    try {
+      const res = await fetch(`${API_BASE}/api/cache-stats`);
+      if (res.ok) setCacheStats(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  useEffect(() => {
+    fetchCacheStats();
+  }, []);
 
   async function ask(text: string) {
     if (!text.trim() || loading) return;
@@ -41,6 +55,7 @@ export function AskPanel() {
         { question: askedQuestion, answer: data.answer, matchedCount: data.matched_count },
         ...prev,
       ]);
+      await fetchCacheStats();
     } catch (err) {
       setError("Couldn't get an answer, check the API is running.");
       console.error(err);
@@ -51,7 +66,14 @@ export function AskPanel() {
 
   return (
     <div className="ask-panel">
-      <h2>Ask about the audit log</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>Ask about the audit log</h2>
+        {cacheStats && (cacheStats.hitRate > 0 || cacheStats.apiCallsSaved > 0) && (
+          <div style={{ background: "#10b981", color: "white", padding: "4px 8px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "bold" }}>
+            Cache hit rate: {(cacheStats.hitRate * 100).toFixed(1)}% · {cacheStats.apiCallsSaved} API calls saved
+          </div>
+        )}
+      </div>
       <p className="ask-hint">Ask in plain English, the agent queries the real audit trail to answer.</p>
 
       <form onSubmit={(e) => { e.preventDefault(); ask(question); }} className="ask-form">

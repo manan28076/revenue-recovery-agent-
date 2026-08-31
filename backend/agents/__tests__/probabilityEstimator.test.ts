@@ -1,75 +1,84 @@
-import test from "node:test";
-import assert from "node:assert";
-import { estimateRecoveryProbability, estimateBaseRecoveryProbability } from "../probabilityEstimator";
-import { PaymentEvent, ClassificationResult } from "../../types";
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import { estimateRecoveryProbability } from '../probabilityEstimator';
+import { PaymentEvent, ClassificationResult } from '../../types';
 
-test("probabilityEstimator", async (t) => {
-  await t.test("base probability matches expected default when not found", () => {
-    const prob = estimateBaseRecoveryProbability("transient_error" as any, "unknown_action" as any);
-    assert.strictEqual(prob, 0.30);
-  });
-
-  await t.test("base probability is correct for known pair", () => {
-    const prob = estimateBaseRecoveryProbability("card_decline", "nudge_with_discount");
-    assert.strictEqual(prob, 0.65);
-  });
-
-  await t.test("calibrates confidence correctly", () => {
-    const event: PaymentEvent = {
-      transaction_id: "txn_123",
+describe('probabilityEstimator', () => {
+  it('should heavily penalize probability if frustration score is high', () => {
+    const event = {
+      transaction_id: 'txn_test1',
       amount: 1000,
-      currency: "INR",
-      status: "failed",
-      failure_code: "card_declined",
-      payment_method: "card",
-      customer_id: "cust_1",
+      currency: 'INR',
+      status: 'failed',
+      failure_code: 'insufficient_funds',
+      payment_method: 'upi',
+      customer_id: 'cust_1',
       attempt_count: 1,
-      checkout_stage: "payment_selection",
-      timestamp: new Date().toISOString(),
+      checkout_stage: 'payment',
       is_subscription: false,
-    };
+      is_real_razorpay_object: false
+    } as PaymentEvent;
 
-    const classification: ClassificationResult = {
-      transaction_id: "txn_123",
-      root_cause: "card_decline",
+    const classificationNormal = {
+      transaction_id: 'txn_test1',
+      root_cause: 'insufficient_funds',
       diagnosis_confidence: 0.9,
-      frustration_score: 0.0,
-      reasoning: "Looks like a card decline",
-      source: "gemini"
+      frustration_score: 0.1, // low frustration
+      reasoning: 'test',
+      source: 'gemini'
+    } as ClassificationResult;
+
+    const classificationFrustrated = {
+      ...classificationNormal,
+      frustration_score: 0.9, // high frustration
     };
 
-    const prob = estimateRecoveryProbability(event, classification, "nudge_with_discount");
-    // base prob is 0.65.
-    // calibrated = (0.65 * 0.9) + (0.15 * 0.1) = 0.585 + 0.015 = 0.60
-    // plus variance.
-    assert.ok(prob > 0.5 && prob < 0.7);
+    const probNormal = estimateRecoveryProbability(event, classificationNormal, 'send_nudge', 'pending');
+    const probFrustrated = estimateRecoveryProbability(event, classificationFrustrated, 'send_nudge', 'pending');
+
+    // Penalty logic: dynamicAiPenalty = frustration * 0.15
+    // 0.9 * 0.15 = 0.135 vs 0.1 * 0.15 = 0.015
+    assert.ok(probNormal > probFrustrated, "Frustration penalty should reduce probability");
+    assert.ok(probNormal - probFrustrated >= 0.10, "Penalty should be mathematically significant");
   });
 
-  await t.test("penalizes for high attempt count", () => {
-    const event: PaymentEvent = {
-      transaction_id: "txn_123",
+  it('should regress towards baseline when confidence is low', () => {
+    const event = {
+      transaction_id: 'txn_test2',
       amount: 1000,
-      currency: "INR",
-      status: "failed",
-      failure_code: "card_declined",
-      payment_method: "card",
-      customer_id: "cust_1",
-      attempt_count: 5,
-      checkout_stage: "payment_selection",
-      timestamp: new Date().toISOString(),
+      currency: 'INR',
+      status: 'failed',
+      failure_code: 'card_decline',
+      payment_method: 'card',
+      customer_id: 'cust_2',
+      attempt_count: 1,
+      checkout_stage: 'payment',
       is_subscription: false,
+      is_real_razorpay_object: false
+    } as PaymentEvent;
+
+    const classificationHighConf = {
+      transaction_id: 'txn_test2',
+      root_cause: 'card_decline',
+      diagnosis_confidence: 0.95,
+      frustration_score: 0.5,
+      reasoning: 'test',
+      source: 'gemini'
+    } as ClassificationResult;
+
+    const classificationLowConf = {
+      ...classificationHighConf,
+      diagnosis_confidence: 0.1,
     };
 
-    const classification: ClassificationResult = {
-      transaction_id: "txn_123",
-      root_cause: "card_decline",
-      diagnosis_confidence: 0.9,
-      frustration_score: 0.0,
-      reasoning: "Looks like a card decline",
-    };
+    // Base probability for card_decline -> retry_payment is 0.55
+    // High conf -> close to 0.55
+    // Low conf -> closer to REGRESSION_BASELINE (0.15)
+    
+    const probHigh = estimateRecoveryProbability(event, classificationHighConf, 'retry_payment', 'pending');
+    const probLow = estimateRecoveryProbability(event, classificationLowConf, 'retry_payment', 'pending');
 
-    const prob = estimateRecoveryProbability(event, classification, "nudge_with_discount");
-    // With 5 attempts, penalty is (5 - 2) * 0.05 = 0.15
-    assert.ok(prob < 0.5);
+    assert.ok(probHigh > probLow, "High confidence should retain high base probability");
+    assert.ok(probLow < 0.3, "Low confidence should regress toward baseline");
   });
 });

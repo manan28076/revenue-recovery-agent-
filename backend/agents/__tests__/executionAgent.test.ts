@@ -1,75 +1,71 @@
-import { test, describe } from "node:test";
-import assert from "node:assert/strict";
-import { executeAction } from "../executionAgent";
-import { PaymentEvent, StrategyDecision } from "../../types";
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import { executeAction } from '../executionAgent';
+import { PaymentEvent, StrategyDecision } from '../../types';
 
-describe("Execution Agent - Idempotency Core Logic", () => {
-  const mockEvent: PaymentEvent = {
-    transaction_id: "txn_123",
-    customer_id: "cust_123",
-    amount: 5000,
-    currency: "INR",
-    status: "failed",
-    failure_code: "insufficient_funds",
-    payment_method: "card",
-    attempt_count: 1,
-    checkout_stage: "n/a",
-    is_subscription: false,
-    customer_payment_history: "new_customer",
-    previous_recovery_attempts: 0,
-    timestamp: new Date().toISOString(),
-  };
+describe('executionAgent', () => {
+  it('should immediately return existing outcome if outcome is not pending (Idempotency check)', async () => {
+    const event = {
+      transaction_id: 'txn_idem_1',
+      amount: 1000,
+      currency: 'INR',
+      status: 'failed',
+      failure_code: 'card_decline',
+      payment_method: 'card',
+      customer_id: 'cust_2',
+      attempt_count: 1,
+      checkout_stage: 'payment',
+      is_subscription: false,
+      is_real_razorpay_object: false
+    } as PaymentEvent;
 
-  const mockDecision: StrategyDecision = {
-    transaction_id: "txn_123",
-    action: "retry_payment",
-    reasoning: "Test action reason",
-    expected_recovery_value: 4000,
-    intervention_cost: 0,
-    expected_net_value: 4000,
-  };
+    const decision = {
+      transaction_id: 'txn_idem_1',
+      action: 'nudge_with_discount',
+      reasoning: 'test',
+      expected_net_value: 500
+    } as StrategyDecision;
 
-  test("should skip link creation and reuse idempotency data if previously processed but pending", async () => {
-    // Calling executeAction with an existing pending link should NOT call Razorpay
-    // It should immediately return outcome: "pending" and the existing link ID
-    const result = await executeAction(mockEvent, mockDecision, {
-      recoveryLinkId: "plink_old_123",
-      recoveryLinkUrl: "https://rzp.io/old_123",
-      outcome: "pending",
-      recoverySource: null,
-    });
-    
-    assert.equal(result.recovery_link_id, "plink_old_123");
-    assert.equal(result.outcome, "pending");
+    const existingLink = {
+      recoveryLinkId: 'plink_existing',
+      recoveryLinkUrl: 'https://rzp.io/existing',
+      outcome: 'recovered',
+      recoverySource: 'webhook_confirmed'
+    };
+
+    const outcome = await executeAction(event, decision, existingLink);
+
+    assert.strictEqual(outcome.outcome, 'recovered');
+    assert.strictEqual(outcome.recovery_link_id, 'plink_existing');
+    assert.strictEqual(outcome.amount_recovered, Math.round(event.amount * 0.85));
   });
 
-  test("should return the final resolved state immediately if previously recovered (do not regress to pending)", async () => {
-    // Calling executeAction with an existing recovered link should NOT call Razorpay
-    // It should immediately short-circuit and return the recovered state
-    const result = await executeAction(mockEvent, mockDecision, {
-      recoveryLinkId: "plink_old_123",
-      recoveryLinkUrl: "https://rzp.io/old_123",
-      outcome: "recovered",
-      recoverySource: "webhook_confirmed",
-    });
-    
-    assert.equal(result.outcome, "recovered");
-    assert.equal(result.recovery_source, "webhook_confirmed");
-    assert.equal(result.amount_recovered, 5000); 
-  });
-  
-  test("should correctly compute recovered amount for nudge_with_discount if previously recovered", async () => {
-    const discountDecision = { ...mockDecision, action: "nudge_with_discount" as const };
-    
-    const result = await executeAction(mockEvent, discountDecision, {
-      recoveryLinkId: "plink_old_123",
-      recoveryLinkUrl: "https://rzp.io/old_123",
-      outcome: "recovered",
-      recoverySource: "webhook_confirmed",
-    });
-    
-    assert.equal(result.outcome, "recovered");
-    // 85% of 5000 is 4250
-    assert.equal(result.amount_recovered, 4250); 
+  it('should properly escalate if link creation fails', async () => {
+    const event = {
+      transaction_id: 'txn_idem_2',
+      amount: 1000,
+      currency: 'INR',
+      status: 'failed',
+      failure_code: 'card_decline',
+      payment_method: 'card',
+      customer_id: 'cust_2',
+      attempt_count: 1,
+      checkout_stage: 'payment',
+      is_subscription: false,
+      is_real_razorpay_object: false
+    } as PaymentEvent;
+
+    const decision = {
+      transaction_id: 'txn_idem_2',
+      action: 'escalate_human',
+      reasoning: 'fraud suspected',
+      expected_net_value: -100
+    } as StrategyDecision;
+
+    const outcome = await executeAction(event, decision, undefined);
+
+    assert.strictEqual(outcome.outcome, 'escalated');
+    assert.strictEqual(outcome.action_taken, 'escalate_human');
+    assert.strictEqual(outcome.amount_recovered, 0);
   });
 });

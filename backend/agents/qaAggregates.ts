@@ -9,13 +9,13 @@ export interface VerifiedAggregates {
 }
 export function computeVerifiedAggregates(entries: any[]): VerifiedAggregates {
   const count = entries.length;
-  const amount_at_risk = entries.reduce((s, e) => s + e.paymentEvent.amount, 0);
+  const amount_at_risk = entries.reduce((s, e) => s + e.paymentEvent.amount, 0) / 100;
   const confirmed_recovered = entries
     .filter((e) => e.outcome === "recovered")
-    .reduce((s, e) => s + e.amountRecovered, 0);
+    .reduce((s, e) => s + e.amountRecovered, 0) / 100;
   const pending_predicted = entries
     .filter((e) => e.outcome === "pending")
-    .reduce((s, e) => s + e.predictedRecoveryAmount, 0);
+    .reduce((s, e) => s + e.predictedRecoveryAmount, 0) / 100;
 
   const by_outcome: Record<string, number> = {};
   for (const e of entries) {
@@ -31,5 +31,5 @@ export function templatedFallback(aggregates: VerifiedAggregates, filter: SafeFi
   }
   const recoveredCount = aggregates.by_outcome["recovered"] || 0;
   const pendingCount = aggregates.by_outcome["pending"] || 0;
-  return `Found ${aggregates.count} matching transaction(s). ${recoveredCount} confirmed recovered, totaling ₹${(aggregates.confirmed_recovered / 100).toLocaleString("en-IN")}. ${pendingCount} still pending confirmation (predicted ₹${(aggregates.pending_predicted / 100).toLocaleString("en-IN")}).`;
+  return `Found ${aggregates.count} matching transaction(s). ${recoveredCount} confirmed recovered, totaling ₹${(aggregates.confirmed_recovered).toLocaleString("en-IN")}. ${pendingCount} still pending confirmation (predicted ₹${(aggregates.pending_predicted).toLocaleString("en-IN")}).`;
 }

@@ -1,6 +1,10 @@
 import { test, describe, mock } from "node:test";
 import { prisma } from "../../db/prismaClient";
 
+declare global {
+  var __mockInterventionCost: number;
+}
+
 global.__mockInterventionCost = 0;
 // @ts-ignore
 prisma.auditLogEntry.aggregate = async () => ({ _sum: { interventionCost: global.__mockInterventionCost } });

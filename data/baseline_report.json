@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-08-30T07:55:00.362Z",
+  "event_count": 105,
+  "disclaimer": "Offline counterfactual evaluation. Employs a 70/30 data split (calibration vs. held-out evaluation) to prevent overfitting. Uses deterministic simulated outcomes to compare policies on the held-out batch. It does not count toward confirmed Razorpay revenue.",
+  "policies": [
+    {
+      "policy": "no_action",
+      "label": "Do nothing",
+      "total_amount_at_risk": 264111320,
+      "total_amount_recovered": 0,
+      "actions_taken": 0,
+      "bad_retries": 0,
+      "escalations": 0,
+      "total_cost": 0,
+      "net_value": 0
+    },
+    {
+      "policy": "blind_retry",
+      "label": "Blind retry (retry everything, no rules)",
+      "total_amount_at_risk": 264111320,
+      "total_amount_recovered": 91078578,
+      "actions_taken": 105,
+      "bad_retries": 39,
+      "escalations": 0,
+      "total_cost": 103500,
+      "net_value": 90975078
+    },
+    {
+      "policy": "agent",
+      "label": "Your agent (diagnosis + policy engine + bounded action)",
+      "total_amount_at_risk": 264111320,
+      "total_amount_recovered": 73498306,
+      "actions_taken": 59,
+      "bad_retries": 0,
+      "escalations": 46,
+      "total_cost": 755300,
+      "net_value": 72743006
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "recovery_rate_percent": 13.777544509006159,
+  "total_failed_transaction_value": 888236245,
+  "total_recovered_value": 122377144,
+  "recovery_uplift_vs_baseline_percent": -49.34628262251034,
+  "expected_revenue_recovered": 118182744,
+  "average_recovery_value_per_transaction": 1534840.831168831,
+  "blocked_risky_fraud_actions": 128,
+  "unnecessary_retry_rate": 0,
+  "baselines": {
+    "no_recovery": {
+      "recovery_rate": 0,
+      "revenue_recovered": 0
+    },
+    "blind_retry": {
+      "recovery_rate": 26.305957149947197,
+      "revenue_recovered": 233315046
+    },
+    "agent": {
+      "recovery_rate": 13.777544509006159,
+      "revenue_recovered": 118182744
+    }
+  }
+}

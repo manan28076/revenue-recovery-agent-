@@ -75,6 +75,24 @@ export default function App() {
         <p className="explainer">
           Autonomous recovery pipeline for payment failures, checkout abandonments, and overdue receivables with real-time audit tracking.
         </p>
+
+        <div style={{ marginTop: "12px", display: "flex", gap: "8px", alignItems: "center" }}>
+          <label style={{ fontSize: "0.8rem", color: "var(--paper-muted)" }}>Admin API Secret:</label>
+          <input 
+            type="password" 
+            placeholder="demo_secret_123"
+            defaultValue={localStorage.getItem("ADMIN_API_SECRET") || ""}
+            onChange={(e) => {
+              if (e.target.value) localStorage.setItem("ADMIN_API_SECRET", e.target.value);
+              else localStorage.removeItem("ADMIN_API_SECRET");
+            }}
+            style={{ 
+              background: "var(--ink-bg)", border: "1px solid var(--ink-border)", 
+              color: "var(--paper)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem"
+            }}
+          />
+          <span style={{ fontSize: "0.7rem", color: "var(--paper-muted)" }}>(Set this if you get HTTP 401 errors)</span>
+        </div>
       </header>
 
       {loading && <p>Loading...</p>}

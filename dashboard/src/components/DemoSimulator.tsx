@@ -2,6 +2,10 @@ import { useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
+function getSecret() {
+  return localStorage.getItem("ADMIN_API_SECRET") || import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123";
+}
+
 interface DemoSimulatorProps {
   onRefresh: () => void;
   onComplete?: () => void;
@@ -25,7 +29,7 @@ export function DemoSimulator({ onRefresh, onComplete }: DemoSimulatorProps) {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_ADMIN_API_SECRET || "demo_secret_123"}`
+          "Authorization": `Bearer ${getSecret()}`
         },
         body: JSON.stringify({ failureCode: failureType }),
       });

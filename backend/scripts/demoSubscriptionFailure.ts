@@ -6,7 +6,7 @@ import { executeBatch } from "../agents/executionAgent";
 
 async function main() {
   const txnId = `sim_sub_${Date.now().toString().slice(-6)}`;
-  
+
   console.log(`[1] Creating simulated subscription failure event: ${txnId}`);
   const event = await prisma.paymentEvent.create({
     data: {
@@ -45,7 +45,7 @@ async function main() {
   console.log(`    -> Reasoning: ${classification.reasoning}`);
 
   console.log("[3] Running strategy engine (Calculating Expected Net Value)...");
-  const [decision] = decideBatch([paymentEvent], [classification]);
+  const [decision] = await decideBatch([paymentEvent], [classification]);
   console.log(`    -> Action Decided: ${decision.action}`);
   console.log(`    -> Reasoning: ${decision.reasoning}`);
 

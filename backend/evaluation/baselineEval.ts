@@ -116,13 +116,13 @@ function runBlindRetryPolicy(
     net_value: total_amount_recovered - total_cost,
   };
 }
-function runAgentPolicy(
+async function runAgentPolicy(
   events: PaymentEvent[],
   classifications: ClassificationResult[]
-): PolicyResult {
+): Promise<PolicyResult> {
   const total_amount_at_risk = events.reduce((s, e) => s + e.amount, 0);
-  const decisions = decideBatch(events, classifications);
-  const decisionByTxn = new Map(decisions.map((d) => [d.transaction_id, d]));
+  const decisions = await decideBatch(events, classifications);
+  const decisionByTxn = new Map(decisions.map((d: any) => [d.transaction_id, d]));
   const classByTxn = new Map(classifications.map((c) => [c.transaction_id, c]));
 
   let total_amount_recovered = 0;
@@ -171,10 +171,10 @@ export interface BaselineComparison {
   policies: PolicyResult[];
 }
 
-export function runBaselineComparison(
+export async function runBaselineComparison(
   events: PaymentEvent[],
   classifications: ClassificationResult[]
-): BaselineComparison {
+): Promise<BaselineComparison> {
   return {
     generated_at: new Date().toISOString(),
     event_count: events.length,
@@ -182,7 +182,7 @@ export function runBaselineComparison(
     policies: [
       runNoActionPolicy(events),
       runBlindRetryPolicy(events, classifications),
-      runAgentPolicy(events, classifications),
+      await runAgentPolicy(events, classifications),
     ],
   };
 }

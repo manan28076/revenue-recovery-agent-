@@ -11,7 +11,7 @@ async function main() {
   // Force fallback to avoid rate limits during analysis
   process.env.DEMO_FORCE_FAILURE = "true";
   const originalError = console.error;
-  console.error = () => {}; // Mute red errors for a clean CLI table output
+  console.error = () => { }; // Mute red errors for a clean CLI table output
   const classifications = await classifyBatch(events, 10);
   console.error = originalError;
 
@@ -25,16 +25,16 @@ async function main() {
 
   for (const shift of shifts) {
     setSensitivityShift(shift);
-    const comparison = runBaselineComparison(events, classifications);
-    
+    const comparison = await runBaselineComparison(events, classifications);
+
     const blind = comparison.policies.find(p => p.policy === "blind_retry")!;
     const agent = comparison.policies.find(p => p.policy === "agent")!;
-    
+
     const margin = ((agent.net_value - blind.net_value) / blind.net_value) * 100;
-    
+
     const shiftStr = shift > 0 ? `+${shift * 100}%` : `${shift * 100}%`;
     const fmt = (n: number) => `₹${(n / 100).toLocaleString("en-IN")}`;
-    
+
     console.log(`| ${shiftStr.padEnd(5)} | ${fmt(blind.net_value).padEnd(21)} | ${fmt(agent.net_value).padEnd(15)} | ${margin > 0 ? "+" : ""}${margin.toFixed(1)}% |`);
   }
 

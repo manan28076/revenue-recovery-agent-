@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { PaymentEvent, ClassificationResult } from "../types";
 import { runBaselineComparison } from "../evaluation/baselineEval";
-function main() {
+async function main() {
   const dataDir = join(__dirname, "..", "..", "data");
   const events: PaymentEvent[] = JSON.parse(readFileSync(join(dataDir, "payment_events.json"), "utf-8"));
   const classifications: ClassificationResult[] = JSON.parse(
@@ -17,7 +17,7 @@ function main() {
     evalEvents.some((e) => e.transaction_id === c.transaction_id)
   );
 
-  const comparison = runBaselineComparison(evalEvents, evalClassifications);
+  const comparison = await runBaselineComparison(evalEvents, evalClassifications);
 
   mkdirSync(dataDir, { recursive: true });
   const outPath = join(dataDir, "baseline_report.json");
@@ -43,11 +43,14 @@ function main() {
     const netUplift = ((agent.net_value - blindRetry.net_value) / Math.abs(blindRetry.net_value)) * 100;
     console.log(
       `\nAgent net value is ${netUplift >= 0 ? "+" : ""}${netUplift.toFixed(1)}% vs blind retry, ` +
-        `with ${blindRetry.bad_retries - agent.bad_retries} fewer unsafe retries.`
+      `with ${blindRetry.bad_retries - agent.bad_retries} fewer unsafe retries.`
     );
   }
 
   console.log(`\nSaved -> ${outPath}`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

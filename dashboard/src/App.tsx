@@ -80,7 +80,7 @@ export default function App() {
           <label style={{ fontSize: "0.8rem", color: "var(--paper-muted)" }}>Admin API Secret:</label>
           <input 
             type="password" 
-            placeholder="demo_secret_123"
+            placeholder="Enter admin secret"
             defaultValue={localStorage.getItem("ADMIN_API_SECRET") || ""}
             onChange={(e) => {
               if (e.target.value) localStorage.setItem("ADMIN_API_SECRET", e.target.value);

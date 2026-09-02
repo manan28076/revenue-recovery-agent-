@@ -124,7 +124,7 @@ function fallbackHeuristic(event: PaymentEvent): ClassificationResult {
 
     diagnosis_confidence: 0.6,
     frustration_score: 0.5,
-    reasoning: `Fallback heuristic mapping from failure_code (${event.failure_code}); Gemini was unavailable so this is a deterministic rule, not a model diagnosis.`,
+    reasoning: `Resilient fallback engaged: the AI provider was rate-limited or unavailable, so the system automatically degraded to a deterministic rule-based classification from the gateway's failure_code (${event.failure_code}) to guarantee every transaction still gets processed without interruption.`,
     evidence: `failure_code is ${event.failure_code}`,
     alternative_explanation: "N/A - Fallback heuristic applied",
     source: "deterministic_fallback",

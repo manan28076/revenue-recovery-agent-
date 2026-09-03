@@ -5,7 +5,7 @@
   "recovery_uplift_vs_baseline_percent": 34.2,
   "expected_revenue_recovered": 285315046,
   "average_recovery_value_per_transaction": 1534840.83,
-  "blocked_risky_fraud_actions": 128,
+  "blocked_risky_fraud_actions": 15,
   "unnecessary_retry_rate": 0,
   "baselines": {
     "no_recovery": {

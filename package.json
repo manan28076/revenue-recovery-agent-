@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
-    "generate-data": "ts-node backend/scripts/generateDataset.ts 350",
-    "seed-real-data": "ts-node backend/scripts/seedRealData.ts 20 35",
+    "generate-data": "ts-node backend/scripts/generateDataset.ts 15",
+    "seed-real-data": "ts-node backend/scripts/seedRealData.ts 15",
     "db:up": "docker compose up -d",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

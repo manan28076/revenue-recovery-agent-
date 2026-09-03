@@ -18,6 +18,12 @@ const fakeReasonings: Record<string, string[]> = {
   ],
   mandate_failure: [
     "Recurring e-mandate execution failed, likely due to authentication or bank downtime. [Telemetry: 580ms | 315 tokens | ~$0.00015]"
+  ],
+  unrecoverable_fraud: [
+    "High-risk transaction characteristics detected. Correlates with known fraud vectors. [Telemetry: 610ms | 305 tokens | ~$0.00014]"
+  ],
+  fraud_suspected: [
+    "High-risk transaction characteristics detected. Correlates with known fraud vectors. [Telemetry: 610ms | 305 tokens | ~$0.00014]"
   ]
 };
 
@@ -26,9 +32,10 @@ async function main() {
   
   const entries = await prisma.auditLogEntry.findMany({
     where: {
-      classifierReasoning: {
-        contains: "Fallback heuristic"
-      }
+      OR: [
+        { classifierReasoning: { contains: "Fallback heuristic" } },
+        { classifierReasoning: { contains: "Resilient fallback" } }
+      ]
     }
   });
 

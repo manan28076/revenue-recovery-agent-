@@ -27,7 +27,7 @@ const ROOT_CAUSE_DEFINITIONS: Record<string, string> = {
 function buildSystemPrompt(failure_code: string): string {
   // Dynamic Context Assembly (Payload Pruning)
   let relevantKeys = Object.keys(ROOT_CAUSE_DEFINITIONS);
-  
+
   if (failure_code === "insufficient_funds") {
     relevantKeys = ["insufficient_funds", "transient_error", "unrecoverable_fraud"];
   } else if (failure_code === "checkout_abandoned") {
@@ -37,7 +37,7 @@ function buildSystemPrompt(failure_code: string): string {
   } else if (failure_code === "mandate_failed") {
     relevantKeys = ["mandate_failure", "insufficient_funds", "card_decline", "transient_error"];
   }
-  
+
   const definitions = relevantKeys.map(k => ROOT_CAUSE_DEFINITIONS[k]).join("\n");
 
   return `You are a payment failure diagnosis agent for a fintech revenue recovery system.
@@ -177,7 +177,7 @@ export async function classifyEvent(
     });
     const endTime = performance.now();
     const latencyMs = Math.round(endTime - startTime);
-    
+
     // Gemini 2.5 Flash pricing is roughly $0.075 per 1M input tokens and $0.30 per 1M output tokens.
     // For a blended average, ~$0.15 per 1M tokens ($0.00000015 per token)
     const tokens = result.usageMetadata?.totalTokenCount ?? 0;

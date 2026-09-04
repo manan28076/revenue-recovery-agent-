@@ -36,7 +36,14 @@ async function main() {
   const { estimateRecoveryProbability: calculateRecoveryProbability } = await import("../agents/probabilityEstimator");
 
   console.log(`Loading ${auditLog.length} audit entries into DB...`);
+  let skipped = 0;
   for (const a of auditLog) {
+    if (!a.transaction_id) {
+      console.warn(`Skipping audit log entry with missing transaction_id:`, JSON.stringify(a).slice(0, 100));
+      skipped++;
+      continue;
+    }
+
     const matchingEvent = eventsByTxn.get(a.transaction_id);
     const recoveryProbability =
       a.recovery_probability ??
@@ -74,7 +81,7 @@ async function main() {
     });
   }
 
-  console.log("Done.");
+  console.log(`Done. ${auditLog.length - skipped} loaded, ${skipped} skipped.`);
 }
 
 main()
